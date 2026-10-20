@@ -1,5 +1,21 @@
+<!doctype html>
+<html lang="ja" class="app">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="パチスロの設定示唆・演出をすぐ引ける早見帳。いまは青ブタ（L青春ブタ野郎はバニーガール先輩の夢を見ない）を収録。">
+<meta name="theme-color" content="#3797EC" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#15275C" media="(prefers-color-scheme: dark)">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="示唆手帳">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px);-webkit-tap-highlight-color:transparent}body{margin:0;padding:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<script>window.APP_MODE = true;</script>
 <title>パチスロ示唆手帳</title>
-<meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Maru+Gothic:wght@500;700;900&display=swap">
@@ -88,6 +104,8 @@ body::before {
   content: ""; position: fixed; inset: 0 0 auto;
   height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg);
 }
+/* ホーム画面アプリ版は時計などの帯を空色にして、白い文字を読みやすくする */
+html.app body::before { background: var(--hero-b); }
 body.locked { overflow: hidden; }
 a { color: var(--sky); }
 button { font: inherit; color: inherit; }
@@ -382,7 +400,8 @@ thead th.s6 { color: var(--pink-deep); }
   * { scroll-behavior: auto !important; }
 }
 </style>
-
+</head>
+<body>
 <header class="hero">
   <div class="gut">
     <div class="hero-top">
@@ -462,6 +481,7 @@ thead th.s6 { color: var(--pink-deep); }
   var G = 'https://1geki.jp/slot/l_ao_buta/';
   var C = 'https://chonborista.com/slot/orinpia-slot/261018/';
   var N = 'https://nana-press.com/kaiseki/machine/1214/';
+  var APP_URL = 'https://applicationsvell.github.io/slotlist/';
 
   var INFO = {
     spec: [
@@ -996,6 +1016,9 @@ thead th.s6 { color: var(--pink-deep); }
     '<div><h2>出典</h2><ul>' + INFO.sources.map(function (s) {
       return '<li><a href="' + esc(s[1]) + '" target="_blank" rel="noopener">' + esc(s[0]) + '</a></li>';
     }).join('') + '</ul></div>' +
+    (window.APP_MODE
+      ? '<p class="small">ホーム画面アプリ版です。一度開けば、電波が弱いホールの中でも見られます。新しい内容は、電波があるときに開き直すと入ります。</p>'
+      : '<div><h2>ホーム画面アプリ版</h2><p><a href="' + APP_URL + '" target="_blank" rel="noopener">' + APP_URL + '</a></p><p class="small">iPhoneはSafariで開いて「共有」→「ホーム画面に追加」。一度開けば電波がなくても見られます。</p></div>') +
     '<p class="small">画面写真は一撃の解析ページから、出典リンクを付けて引用しています。ちょんぼりすた・なな徹はリンクのみです。示唆の中身と数値は各サイトの解析・実戦報告を要約したもので、新しい情報が出ると変わることがあります。</p>';
   [['b-info', 'p-info'], ['b-legend', 'p-legend']].forEach(function (p, i, arr) {
     document.getElementById(p[0]).addEventListener('click', function () {
@@ -1062,3 +1085,10 @@ thead th.s6 { color: var(--pink-deep); }
   show(byId(h) ? h : (byId(recalled()) ? recalled() : FLAT[0].id), false);
 })();
 </script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+}
+</script>
+</body>
+</html>
