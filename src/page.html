@@ -684,6 +684,29 @@ body.judging main.gut { padding-bottom: calc(210px + env(safe-area-inset-bottom,
 .jydl dt small { display: block; font-size: 11px; color: var(--muted); font-weight: 500; }
 .jydl dd { margin: 0; font-weight: 900; font-size: 16px; text-align: right; font-variant-numeric: tabular-nums; }
 .jydl > div.st { grid-template-columns: minmax(0, 1fr); }
+/* 差枚の出し方の切り替え */
+.jmodes { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; background: var(--bg); border: 2px solid var(--edge); border-radius: 999px; padding: 3px; }
+.jmd { cursor: pointer; border: 0; border-radius: 999px; background: transparent; color: var(--muted); font-size: 12.5px; font-weight: 900; padding: 7px 4px; min-width: 0; }
+.jmd[aria-checked="true"] { background: var(--mint); color: var(--on-color); }
+.jbtn.sm { font-size: 14px; }
+.jrate { display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 700; color: var(--muted); flex-wrap: wrap; }
+.jrate label { flex: 1; min-width: 0; }
+.jrate input {
+  width: 4.5em; box-sizing: border-box; font: inherit; font-size: 16px; font-weight: 900; text-align: right; padding: 5px 8px;
+  border-radius: 10px; border: 2px solid var(--edge); background: var(--surface); color: var(--ink); font-variant-numeric: tabular-nums;
+}
+/* 持ち玉−投資＝差枚 の式 */
+.jyform {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px 8px; padding: 10px 12px; border-radius: 14px;
+  background: var(--mint-soft); border: 2px solid var(--edge); font-size: 12px; font-weight: 700; color: var(--muted); text-align: center;
+}
+.jyform span { display: grid; justify-items: center; line-height: 1.3; }
+.jyform b { font-size: 16px; font-weight: 900; color: var(--ink); font-variant-numeric: tabular-nums; }
+.jyform small { font-size: 10.5px; }
+.jyform i { font-style: normal; font-size: 18px; font-weight: 900; color: var(--ink); }
+.jyform .eq b { color: var(--pink-deep); font-size: 18px; }
+.jyend { margin: 6px 0 0; font-size: 13px; font-weight: 700; background: var(--sun-soft); border: 2px solid var(--edge); border-radius: 12px; padding: 6px 10px; }
+.jylist { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; font-size: 13px; line-height: 1.6; }
 .jyh { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 10px; padding-top: 10px; border-top: 2px dashed var(--line); font-size: 13px; }
 .jyh:first-of-type { border-top: 0; padding-top: 0; }
 .jyh b { font-weight: 900; }
@@ -1213,8 +1236,10 @@ body.judging main.gut { padding-bottom: calc(210px + env(safe-area-inset-bottom,
   var J = null, HINTS = {}, resetAsk = false, gPrev = null;
   var guideShow = recall('shisa.judgeGuide') !== '1';
 
-  // ga：AT中のゲーム数。y：有利区間のメモ（cut 切断したときの差枚、low その後いちばん低い差枚、now いまの差枚、hist 切断の記録）
-  function yBlank() { return { cut: null, low: null, now: null, hist: [] }; }
+  // ga：AT中のゲーム数。y：有利区間のメモ
+  //   mode：'money' は「持ち玉−投資枚数」で差枚を出す、'direct' は差枚を直接入れる
+  //   inv 投資金額（円）、hold 持ち玉（枚）、rate 1000円で借りられる枚数、now 直接入れた差枚、start 有利区間が始まったときの差枚、hist 切れたときの記録
+  function yBlank() { return { used: false, mode: 'money', inv: 0, hold: 0, rate: 46, now: 0, start: 0, hist: [] }; }
   function jBlank() { return { games: 0, ga: 0, r: {}, t: {}, h: {}, on: { hit: true }, y: yBlank(), log: [] }; }
   function clone(o) { return JSON.parse(JSON.stringify(o)); }
   function numOrNull(v) { return typeof v === 'number' && isFinite(v) ? v : null; }
@@ -1225,7 +1250,14 @@ body.judging main.gut { padding-bottom: calc(210px + env(safe-area-inset-bottom,
     var b = jBlank();
     b.games = +d.games || 0; b.ga = +d.ga || 0; b.r = d.r || {}; b.t = d.t || {}; b.h = d.h || {}; b.log = d.log || [];
     if (d.y && typeof d.y === 'object') {
-      b.y = { cut: numOrNull(d.y.cut), low: numOrNull(d.y.low), now: numOrNull(d.y.now), hist: Array.isArray(d.y.hist) ? d.y.hist : [] };
+      var oy = d.y, y = yBlank();
+      ['inv', 'hold', 'rate', 'now', 'start'].forEach(function (k) { if (numOrNull(oy[k]) != null) y[k] = oy[k]; });
+      if (oy.mode === 'money' || oy.mode === 'direct') y.mode = oy.mode;
+      // 前の形（差枚を直接入れて、切れたときの差枚を cut に持っていた）
+      if (numOrNull(oy.cut) != null) { y.start = oy.cut; y.mode = 'direct'; }
+      y.hist = Array.isArray(oy.hist) ? oy.hist : [];
+      y.used = !!(oy.used || numOrNull(oy.cut) != null || y.hist.length);
+      b.y = y;
     }
     if (d.on) b.on = d.on;
     return b;
@@ -1244,14 +1276,18 @@ body.judging main.gut { padding-bottom: calc(210px + env(safe-area-inset-bottom,
     return perOf(r) === 'all' ? G + A : perOf(r) === 'at' ? A : G;
   }
   function gForName(r) { return perOf(r) === 'all' ? gName() + 'とAT中のゲーム数' : perOf(r) === 'at' ? atName() : gName(); }
-  // 有利区間：上限（差枚2400枚）まであと何枚か。数え始めていなければ null
-  function yCap() { return M.judge.cap || 2400; }
-  function yState() {
-    var y = J.y;
-    if (y.cut == null) return null;
-    var cur = y.now != null ? y.now : y.cut, low = Math.min(y.low != null ? y.low : y.cut, cur);
-    return { cur: cur, low: low, gained: cur - low, remain: yCap() - (cur - low) };
+  // 有利区間：スマスロ・6.5号機の上限は、有利区間が始まったときの差枚（±0）から＋2400枚
+  // 差枚は「持ち玉−投資枚数」（投資枚数＝投資金額÷1000×1000円の枚数）。途中でへこんだ分は上限までの枚数に足される
+  function yCap() { return (M.judge.yuri && M.judge.yuri.cap) || 2400; }
+  function yInvCoins(y) { return Math.round(y.inv / 1000 * y.rate); }
+  function yDiff() { var y = J.y; return y.mode === 'money' ? y.hold - yInvCoins(y) : (y.now || 0); }
+  function yCalc() {
+    var cap = yCap(), cur = yDiff(), start = J.y.start, end = (M.judge.yuri || {}).end;
+    return { cur: cur, gained: cur - start, remain: cap - (cur - start), line: start + cap,
+      endRemain: end ? end - (cur - start) : null, endLine: end ? start + end : null };
   }
+  // 下のバーに出すのは、有利区間のメモを使ったときだけ
+  function yState() { return J.y.used ? yCalc() : null; }
   function coin(v) { return (v > 0 ? '＋' : v < 0 ? '−' : '±') + Math.abs(v).toLocaleString('ja-JP') + '枚'; }
   function jSave() { try { localStorage.setItem('shisa.judge.' + M.id, JSON.stringify(J)); } catch (e) {} }
   function hintKey(g, it) { return g.id + '|' + it.see + '|' + (it.sub || ''); }
@@ -1554,40 +1590,67 @@ body.judging main.gut { padding-bottom: calc(210px + env(safe-area-inset-bottom,
 
   // 「有利区間」：いまの差枚と切断を記録して、上限（差枚2400枚）まであと何枚かを出す
   function ySumHTML() {
-    var st = yState(), cap = yCap();
-    if (!st) return '';
-    var w = Math.min(100, Math.max(0, st.gained / cap * 100));
-    return '<div class="jyled"><span>あと</span><b>' + Math.max(0, st.remain).toLocaleString('ja-JP') + '</b><span>枚</span></div>' +
-      '<div class="jytrack" role="img" aria-label="' + esc('上限' + cap + '枚のうち' + st.gained + '枚') + '"><span style="width:' + w + '%"></span><i>' + st.gained.toLocaleString('ja-JP') + ' / ' + cap.toLocaleString('ja-JP') + '枚</i></div>' +
-      '<p class="small">' + (st.remain > 0
-        ? '差枚が <b>' + coin(st.low + cap) + '</b> まで増えると、上限で有利区間が切れます。'
-        : '上限に届いています。有利区間が切れたら、下のボタンを押してください。') + '</p>';
+    var c = yCalc(), cap = yCap(), Y = M.judge.yuri || {};
+    var w = Math.min(100, Math.max(0, c.gained / cap * 100));
+    return '<div class="jyled"><span>あと</span><b>' + Math.max(0, c.remain).toLocaleString('ja-JP') + '</b><span>枚</span></div>' +
+      '<div class="jytrack" role="img" aria-label="' + esc('上限' + cap + '枚のうち' + c.gained + '枚') + '"><span style="width:' + w + '%"></span><i>' + coin(c.gained) + ' / ' + cap.toLocaleString('ja-JP') + '枚</i></div>' +
+      '<p class="small">' + (c.remain > 0
+        ? '差枚が <b>' + coin(c.line) + '</b> になると、上限（' + cap.toLocaleString('ja-JP') + '枚）で有利区間が切れます。'
+        : '上限に届いています。有利区間が切れたら、下のボタンで記録してください。') + '</p>' +
+      (Y.end ? '<p class="jyend">' + esc(Y.endLabel || 'エンディング') + (c.endRemain > 0
+        ? 'まで あと <b>' + c.endRemain.toLocaleString('ja-JP') + '枚</b>（差枚 ' + coin(c.endLine) + ' で入ります）'
+        : 'に入る差枚（' + coin(c.endLine) + '）に届いています') + '</p>' : '');
+  }
+  function yFormHTML() {
+    var y = J.y, ic = yInvCoins(y);
+    return '<div class="jyform"><span>持ち玉<b>' + y.hold.toLocaleString('ja-JP') + '枚</b></span><i>−</i>' +
+      '<span>投資<b>' + ic.toLocaleString('ja-JP') + '枚</b><small>' + y.inv.toLocaleString('ja-JP') + '円×' + y.rate + '枚</small></span><i>＝</i>' +
+      '<span class="eq">差枚<b>' + coin(yDiff()) + '</b></span></div>';
   }
   function jYuriHTML() {
-    var y = J.y, st = yState(), cap = yCap();
+    var y = J.y, Y = M.judge.yuri || {}, cap = yCap(), money = y.mode === 'money';
     var h = '<section class="jcard c-mint"><h3>いまの差枚</h3>' +
-      '<p class="small">データカウンターのグラフに出ている、この台のいまの差枚です。マイナスのときは「±」で切り替えます。</p>' +
-      ledField('j-ynow', y.now != null ? y.now : (y.cut != null ? y.cut : 0), '枚', 'now', 'いまの差枚') +
-      '<div class="jplus">' + [-100, -10, 10, 100].map(function (d) {
-        return '<button type="button" class="jbtn' + (d < 0 ? ' minus' : '') + '" data-act="yadd" data-d="' + d + '">' + (d > 0 ? '＋' : '−') + Math.abs(d) + '</button>';
-      }).join('') + '</div></section>';
-    if (!st) {
-      h += '<section class="jcard c-sun"><h3>次に有利区間が切れるまで</h3>' +
-        '<p class="small">有利区間が切れたとき（打ち始めに有利区間ランプが消えているときも）に押すと、そこから数え始めます。切れたあといちばん低かった差枚から' + cap.toLocaleString('ja-JP') + '枚増えると、上限で有利区間が切れます。</p>' +
-        '<button type="button" class="jgo" data-act="ystart">いまの差枚から数え始める</button></section>';
+      '<div class="jmodes" role="radiogroup" aria-label="差枚の出し方">' +
+      '<button type="button" class="jmd" role="radio" data-act="ymode" data-id="money" aria-checked="' + money + '">投資と持ち玉から出す</button>' +
+      '<button type="button" class="jmd" role="radio" data-act="ymode" data-id="direct" aria-checked="' + !money + '">差枚を直接入れる</button></div>';
+    if (money) {
+      h += '<div class="jgames"><label for="j-yinv">投資金額</label>' + ledField('j-yinv', y.inv, '円') +
+        '<div class="jplus">' + [-1000, 1000, 5000, 10000].map(function (d) {
+          return '<button type="button" class="jbtn sm' + (d < 0 ? ' minus' : '') + '" data-act="yinv" data-d="' + d + '">' + (d < 0 ? '−' : '＋') + (Math.abs(d) >= 10000 ? Math.abs(d) / 10000 + '万' : Math.abs(d) / 1000 + '千') + '円</button>';
+        }).join('') + '</div></div>' +
+        '<div class="jgames"><label for="j-yhold">持ち玉（いま持っている枚数）</label>' + ledField('j-yhold', y.hold, '枚') + '</div>' +
+        '<div class="jrate"><label for="j-yrate">1000円で借りられる枚数</label><input id="j-yrate" type="number" inputmode="numeric" min="1" step="1" value="' + y.rate + '"><span>枚</span></div>' +
+        '<div id="js-yform">' + yFormHTML() + '</div>';
     } else {
-      h += '<section class="jcard c-sun"><h3>次に有利区間が切れるまで</h3><div id="js-ysum">' + ySumHTML() + '</div>' +
-        '<dl class="jydl"><div><dt>切れたときの差枚</dt><dd>' + coin(y.cut) + '</dd></div>' +
-        '<div class="st"><dt>その後いちばん低かった差枚<small>グラフの谷と違えば直せます</small></dt><dd>' + ledField('j-ylow', st.low, '枚', 'low', 'その後いちばん低かった差枚') + '</dd></div></dl>' +
-        '<button type="button" class="jgo" data-act="ycut">有利区間が切れた（いまの差枚で記録）</button></section>';
+      h += '<p class="small">データカウンターのグラフの差枚などを入れます。マイナスのときは「±」で切り替えます。</p>' +
+        ledField('j-ynow', y.now || 0, '枚', 'now', 'いまの差枚') +
+        '<div class="jplus">' + [-100, -10, 10, 100].map(function (d) {
+          return '<button type="button" class="jbtn' + (d < 0 ? ' minus' : '') + '" data-act="yadd" data-d="' + d + '">' + (d > 0 ? '＋' : '−') + Math.abs(d) + '</button>';
+        }).join('') + '</div>';
     }
+    h += '</section>';
+    h += '<section class="jcard c-sun"><h3>次に有利区間が切れるまで</h3><div id="js-ysum">' + ySumHTML() + '</div>' +
+      '<dl class="jydl"><div class="st"><dt>有利区間が始まったときの差枚<small>' +
+      (y.hist.length ? '前に切れたときの差枚から数えています。' : '打ち始め（差枚0）から数えています。前の人の有利区間が続いている台では、残りが多めに出ます。') +
+      '</small></dt><dd>' + ledField('j-ystart', y.start, '枚', 'start', '有利区間が始まったときの差枚') + '</dd></div></dl>' +
+      '<button type="button" class="jgo" data-act="ycut">有利区間が切れた（いまの差枚で記録）</button></section>';
+    // この機種の有利区間
+    h += '<section class="jcard c-grape"><h3>' + esc(M.short) + 'の有利区間</h3><ul class="jylist">' +
+      '<li>上限は、有利区間が始まったときの差枚から＋' + cap.toLocaleString('ja-JP') + '枚です（スマスロ・6.5号機）。途中でへこんだ分は、上限までの枚数に足されます。</li>' +
+      (Y.notes || []).map(function (n) { return '<li>' + esc(n) + '</li>'; }).join('') +
+      '<li>有利区間ランプがない機種が多く、いつ切れたか見えないこともあります。</li></ul>' +
+      (Y.src ? '<div class="src"><span class="src-label">出典</span>' + Y.src.map(function (x) {
+        return '<a href="' + esc(link(x[1])) + '" target="_blank" rel="noopener">' + esc(x[0]) + '</a>';
+      }).join('') + '</div>' : '') + '</section>';
     if (y.hist.length) {
-      h += '<section class="jcard c-grape"><h3>切れたときの記録</h3>' + y.hist.map(function (e, i) {
+      h += '<section class="jcard c-pink"><h3>切れたときの記録</h3>' + y.hist.map(function (e, i) {
         return { e: e, n: i + 1 };
       }).reverse().map(function (x) {
-        return '<div class="jyh"><b>' + x.n + '回目</b><span class="tm">' + esc(x.e.t || '') + '</span>' +
-          '<span>切れたときの差枚<em>' + coin(x.e.at) + '</em></span>' +
-          '<span>その有利区間で増えた枚数<em>' + (x.e.gain == null ? '—' : x.e.gain.toLocaleString('ja-JP') + '枚') + '</em></span></div>';
+        var e = x.e;
+        return '<div class="jyh"><b>' + x.n + '回目</b><span class="tm">' + esc(e.t || '') + '</span>' +
+          '<span>切れたときの差枚<em>' + coin(e.at) + '</em></span>' +
+          '<span>その有利区間で増えた枚数<em>' + (e.gain == null ? '—' : coin(e.gain)) + '</em></span>' +
+          (e.inv != null ? '<span>そのときの投資・持ち玉<em>' + e.inv.toLocaleString('ja-JP') + '円・' + e.hold.toLocaleString('ja-JP') + '枚</em></span>' : '') + '</div>';
       }).join('') + '</section>';
     }
     return h;
@@ -1602,7 +1665,7 @@ body.judging main.gut { padding-bottom: calc(210px + env(safe-area-inset-bottom,
       '<p>「濃厚」の示唆はその設定を候補から外します。出現率がわかっている示唆はその値で、わからない奇数・偶数や高設定示唆（弱・強）は仮の重みで少しだけ寄せています。「推測」の示唆は外さずに弱めに数えます。</p>' +
       (Jd.rates.some(function (r) { return perOf(r) !== 'normal'; }) ? '<p>AT中にも同じ確率で出るものは、' + esc(gName()) + 'とAT中のゲーム数を足して割ります。AT中の分も数えると、早く判別できます。</p>' : '') +
       ((Jd.marks || []).length ? '<p>「目安」は設定1（青ブタは設定2）の値しかわからないものです。計算には入れず、その値より良いか悪いかだけを出します。</p>' : '') +
-      '<p>有利区間は、切れたあといちばん低かった差枚から' + yCap().toLocaleString('ja-JP') + '枚増えると上限で切れます。差枚はデータカウンターのグラフの値で、実際の枚数と少しずれることがあります。</p>' +
+      '<p>有利区間は、始まったときの差枚から＋' + yCap().toLocaleString('ja-JP') + '枚で上限になって切れます。差枚は「持ち玉−投資枚数」（投資枚数＝投資金額÷1000×1000円で借りられる枚数）で出します。</p>' +
       '<p>電光表示の柱の色は、示唆の色と同じ順です。</p>' +
       '<div class="jkey">' + S.map(function (s) { return '<span class="' + kc(s).trim() + '">設定' + s + '</span>'; }).join('') + '</div></section>' +
       ((Jd.note || (Jd.cautions || []).length) ? '<section class="jcard jhow c-sun"><h3>この機種の注意</h3><ul>' +
@@ -1648,8 +1711,9 @@ body.judging main.gut { padding-bottom: calc(210px + env(safe-area-inset-bottom,
         if (box) box.innerHTML = jResultHTML(R);
         if (wb) wb.innerHTML = warnHTML(R);
         if (ub) ub.disabled = !J.log.length;
-        var ysum = document.getElementById('js-ysum');
+        var ysum = document.getElementById('js-ysum'), yform = document.getElementById('js-yform');
         if (ysum) ysum.innerHTML = ySumHTML();
+        if (yform) yform.innerHTML = yFormHTML();
       }
     }
   }
@@ -1731,20 +1795,20 @@ body.judging main.gut { padding-bottom: calc(210px + env(safe-area-inset-bottom,
     if (act === 'on') { if (J.r[id] > 0) return; jApply(['on', id, !J.on[id]], true); jRefresh(true); return; }
     if (act === 'g') jApply(['g', d], true);
     else if (act === 'ga') jApply(['a', d], true);
-    else if (act === 'ystart' || act === 'ycut' || act === 'yadd' || act === 'yneg') {
+    else if (act === 'ymode' || act === 'ycut' || act === 'yadd' || act === 'yinv' || act === 'yneg') {
       var prevY = clone(J.y), y = J.y;
-      if (act === 'ystart') { var s0 = y.now != null ? y.now : 0; y.now = s0; y.cut = s0; y.low = s0; }
+      if (act === 'ymode') y.mode = id === 'direct' ? 'direct' : 'money';
+      else if (act === 'yinv') y.inv = Math.max(0, y.inv + d);
+      else if (act === 'yadd') y.now = (y.now || 0) + d;
+      else if (act === 'yneg') y[id === 'start' ? 'start' : 'now'] = -(y[id === 'start' ? 'start' : 'now'] || 0);
       else if (act === 'ycut') {
-        var st = yState(), d0 = new Date();
-        y.hist.push({ at: st.cur, gain: st.gained, t: ('0' + d0.getHours()).slice(-2) + ':' + ('0' + d0.getMinutes()).slice(-2) });
+        var c = yCalc(), d0 = new Date();
+        y.hist.push({ at: c.cur, gain: c.gained, inv: y.mode === 'money' ? y.inv : null, hold: y.mode === 'money' ? y.hold : null,
+          t: ('0' + d0.getHours()).slice(-2) + ':' + ('0' + d0.getMinutes()).slice(-2) });
         if (y.hist.length > 50) y.hist.shift();
-        y.cut = st.cur; y.low = st.cur; y.now = st.cur;
+        y.start = c.cur;
       }
-      else if (act === 'yneg' && id === 'low') { var sl = yState(); if (sl) y.low = -sl.low; }
-      else {
-        y.now = act === 'yadd' ? (y.now != null ? y.now : (y.cut != null ? y.cut : 0)) + d : -(y.now || 0);
-        if (y.cut != null) y.low = Math.min(y.low != null ? y.low : y.cut, y.now);
-      }
+      y.used = true;
       jApply(['Y', prevY, clone(y)], true);
     }
     else if (act === 'r') { if (d < 0 && !(J.r[id] > 0)) return; jApply(['r', id, d], true); syncCnt('r:' + id); }
@@ -1779,7 +1843,7 @@ body.judging main.gut { padding-bottom: calc(210px + env(safe-area-inset-bottom,
   });
   jBar.addEventListener('click', function (e) { var b = e.target.closest('[data-act]'); if (b) jAct(b); });
   jBody.addEventListener('click', function (e) { var b = e.target.closest('[data-act]'); if (b) jAct(b); });
-  var FIELD = { 'j-games': 'games', 'j-ga': 'ga', 'j-ynow': 'now', 'j-ylow': 'low' };
+  var FIELD = { 'j-games': 'games', 'j-ga': 'ga', 'j-yinv': 'inv', 'j-yhold': 'hold', 'j-yrate': 'rate', 'j-ynow': 'now', 'j-ystart': 'start' };
   jBody.addEventListener('input', function (e) {
     var f = FIELD[e.target.id];
     if (!f) return;
@@ -1789,7 +1853,8 @@ body.judging main.gut { padding-bottom: calc(210px + env(safe-area-inset-bottom,
       J[f] = Math.max(0, v);
     } else {
       if (gPrev == null) gPrev = clone(J.y);
-      J.y[f] = e.target.value === '' ? null : v;
+      J.y[f] = f === 'rate' ? (e.target.value === '' ? 46 : Math.max(1, v)) : (f === 'inv' || f === 'hold') ? Math.max(0, v) : v;
+      J.y.used = true;
     }
     jSave();
     jRefresh(false);
@@ -1803,9 +1868,7 @@ body.judging main.gut { padding-bottom: calc(210px + env(safe-area-inset-bottom,
     if (f === 'games' || f === 'ga') {
       if (prev != null && prev !== J[f]) J.log.push([f === 'games' ? 'G' : 'A', prev, J[f]]);
     } else {
-      var y = J.y;
-      if (f === 'now' && y.cut != null && y.now != null) y.low = Math.min(y.low != null ? y.low : y.cut, y.now);
-      if (prev && JSON.stringify(prev) !== JSON.stringify(y)) J.log.push(['Y', prev, clone(y)]);
+      if (prev && JSON.stringify(prev) !== JSON.stringify(J.y)) J.log.push(['Y', prev, clone(J.y)]);
     }
     jSave();
     jRefresh(true);
