@@ -34,6 +34,10 @@ https://applicationsvell.github.io/slotlist/
 - `src/page.html`：ページの本体（見た目と動き）。claude.ai のアーティファクト版もこのファイルから公開する（`machines/` と `img/` を一緒に送る）
 - `machines/<機種>.js`：機種ごとの示唆データ。タブ・項目・写真をここに書く。新しい機種はファイルを足して、`src/page.html` の `<script src="machines/…">` の並びに1行足す
 - `img/<機種>/`：一撃から引用した画面写真（webp）
+- 設定判別ツール：機種ファイルに `judge`（`settings`・`rates`・`pairs`・`memo`）を書くと、その機種に「設定判別」ボタンが出る。いまは青ブタだけ
+  - `rates`：総回転数に対する回数（値は分母）。`pairs`：引いた回数とそこから当たった回数（値は%）
+  - 「設定示唆」タブの示唆は、結果の文言（○以上・奇数・偶数・高設定示唆（弱・強）・否定）から重みを自動で決める。`memo` に書いたグループはモード示唆として回数だけ数え、計算には入れない
+  - 記録は機種ごとに1台ぶん、端末（localStorage）に保存する
 - `node src/build-app.js`：`src/page.html` から、ルートの `index.html`・`manifest.webmanifest`・`sw.js` と `machines/dims.js`（写真の縦横）を作り直す。ページ・データ・画像を変えたら必ず実行する（`sw.js` の版が変わり、アプリに新しい内容が届く）
 - アプリ版では、開いた機種の写真をその場で端末に保存する（全機種ぶんを最初に落とすと重いため）
 - `node src/icon.js`：`icons/` のアイコンを作り直す（Playwright が必要）
