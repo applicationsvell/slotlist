@@ -27,7 +27,7 @@ const html = `<!doctype html>
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="示唆手帳">
+<meta name="apple-mobile-web-app-title" content="シサミル">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
@@ -47,8 +47,8 @@ if ('serviceWorker' in navigator) {
 `;
 
 const manifest = JSON.stringify({
-  name: 'パチスロ示唆手帳',
-  short_name: '示唆手帳',
+  name: 'シサミル',
+  short_name: 'シサミル',
   description: 'パチスロの設定示唆・演出をすぐ引ける早見帳',
   lang: 'ja',
   id: './',
