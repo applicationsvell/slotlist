@@ -60,7 +60,7 @@
             { see: '敵キャラ集合', res: '乙女モード「ヨシテル」濃厚。次のATは剣聖CHANCEか真強カワRUSH', lv: 'hot', img: ['ekishou120', '10/#dynamic_header_1', 'AT終了画面：敵キャラ集合'] },
             { see: '乙女4人', res: 'テーブル通常B以上濃厚。通常Bでなかったら設定4以上濃厚', lv: 'hot', img: ['ekishou118', '10/#dynamic_header_1', 'AT終了画面：乙女4人'] },
             { see: '乙女集合（赤）', res: 'テーブル天国濃厚。天国でなかったら設定4以上濃厚', lv: 'hot', img: ['ekishou119', '10/#dynamic_header_1', 'AT終了画面：乙女集合（赤）'] },
-            { see: '乙女集合（金）', res: 'テーブル天国＋設定2以上濃厚', lv: 'hot', img: ['ekishou123', '10/#dynamic_header_1', 'AT終了画面：乙女集合（金）'] }
+            { see: '乙女集合（金）', res: 'テーブル天国＋設定2以上濃厚', lv: 'hot', count: true, img: ['ekishou123', '10/#dynamic_header_1', 'AT終了画面：乙女集合（金）'] }
           ]
         },
         {
@@ -90,8 +90,8 @@
             { see: '「攻めどきっしょ！」', res: '設定4以上濃厚', lv: 'red' },
             { see: '「気分アゲアゲだし！」', res: '設定5以上濃厚', lv: 'purple' },
             { see: '「戦乱に忍ぶ深紅の影、石川ゴエモン！」', res: '設定6濃厚', lv: 'rain' },
-            { see: '「なになに、気になるー？」', res: '設定2を否定', lv: 'info' },
-            { see: '「ちょ～っとホンキ出しちゃおっかな？」', res: '設定3を否定', lv: 'info' },
+            { see: '「なになに、気になるー？」', res: '設定2を否定', lv: 'info', count: true },
+            { see: '「ちょ～っとホンキ出しちゃおっかな？」', res: '設定3を否定', lv: 'info', count: true },
             { see: 'シークレットトークで敵武将3人が最初に出る', sub: 'エンディング後半のキャラ紹介', res: '要注目（中身はまだ不明）', lv: 'info', tag: '調査中', img: ['ekishou105', '0/#dynamic_header_16', '乙女シークレットトーク：敵武将3人'] }
           ]
         },

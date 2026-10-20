@@ -41,8 +41,8 @@
             { see: 'ルーチカ', res: '偶数設定を示唆', lv: 'oe', img: ['ekishou112', '6/#dynamic_header_1', 'AT終了画面：ルーチカ'] },
             { see: 'フィオレーネ＋オトモアイルー', res: '高設定示唆（弱）', lv: 'blue', img: ['ekishou113', '6/#dynamic_header_1', 'AT終了画面：フィオレーネ＋オトモアイルー'] },
             { see: 'チッチェ＋オトモ2匹', sub: 'アイルー・ガルク', res: '高設定示唆（強）', lv: 'green', img: ['ekishou114', '6/#dynamic_header_1', 'AT終了画面：チッチェ＋オトモアイルー＋オトモガルク'] },
-            { see: 'フィオレーネ＆ロンディーネ', res: '設定2を否定', lv: 'info', img: ['ekishou115', '6/#dynamic_header_1', 'AT終了画面：フィオレーネ＆ロンディーネ'] },
-            { see: 'ジェイ＋アルロー＋ガレアス', res: '設定3を否定', lv: 'info', img: ['ekishou116', '6/#dynamic_header_1', 'AT終了画面：ジェイ＋アルロー＋ガレアス'] },
+            { see: 'フィオレーネ＆ロンディーネ', res: '設定2を否定', lv: 'info', count: true, img: ['ekishou115', '6/#dynamic_header_1', 'AT終了画面：フィオレーネ＆ロンディーネ'] },
+            { see: 'ジェイ＋アルロー＋ガレアス', res: '設定3を否定', lv: 'info', count: true, img: ['ekishou116', '6/#dynamic_header_1', 'AT終了画面：ジェイ＋アルロー＋ガレアス'] },
             { see: 'ヒノエ＆ミノト', res: '設定2以上濃厚', lv: 'blue', img: ['ekishou103', '6/#dynamic_header_1', 'AT終了画面：ヒノエ＆ミノト'] },
             { see: '全員集合', res: '設定5以上濃厚', lv: 'purple', img: ['ekishou104', '6/#dynamic_header_1', 'AT終了画面：全員集合'] },
             { see: 'エンタライオン', res: '設定6濃厚', lv: 'rain', img: ['ekishou105', '6/#dynamic_header_1', 'AT終了画面：エンタライオン'] }

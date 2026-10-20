@@ -1048,7 +1048,7 @@ details.jmore summary { cursor: pointer; font-size: 13px; font-weight: 700; colo
   function countKind(g, it) {
     if (!M.judge) return null;
     if (it.rate) return 'rate';
-    if (g.tab.id === 'setting' && PILL[it.lv]) return 'set';
+    if (g.tab.id === 'setting' && (PILL[it.lv] || it.count)) return 'set';
     if ((M.judge.memo || []).indexOf(g.id) !== -1) return 'memo';
     return null;
   }
