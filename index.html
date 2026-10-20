@@ -558,12 +558,12 @@ body.judging main.gut { padding-bottom: calc(210px + env(safe-area-inset-bottom,
 /* 数える・示唆・しくみ の切り替え */
 .jseg { display: flex; gap: 8px; align-items: center; }
 .jtabs {
-  flex: 1; min-width: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px;
+  flex: 1; min-width: 0; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 2px;
   background: var(--surface); border: 2px solid var(--edge); border-radius: 999px; padding: 3px; box-shadow: 2px 3px 0 var(--edge);
 }
 .jtab {
   cursor: pointer; border: 0; background: transparent; color: var(--muted); border-radius: 999px;
-  font-size: 13.5px; font-weight: 900; padding: 6px 4px; display: inline-flex; justify-content: center; align-items: center; gap: 4px; min-width: 0;
+  font-size: 13px; font-weight: 900; padding: 6px 2px; display: inline-flex; justify-content: center; align-items: center; gap: 3px; min-width: 0; white-space: nowrap;
 }
 .jtab[aria-selected="true"] { background: var(--pink); color: var(--on-pink); }
 .jtab .bd {
@@ -612,6 +612,13 @@ body.judging main.gut { padding-bottom: calc(210px + env(safe-area-inset-bottom,
 }
 .jledin input::placeholder { color: var(--led-dim); }
 .jledin span { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); font-family: var(--font-led); color: var(--led-muted); font-size: 16px; pointer-events: none; }
+.jledin.sg input { padding-left: 58px; }
+.jsign {
+  cursor: pointer; position: absolute; left: 8px; top: 50%; transform: translateY(-50%); width: 42px; height: 36px; border-radius: 10px;
+  border: 2px solid var(--led-dim); background: var(--led-deep); color: var(--led-fg); font-family: var(--font-led); font-size: 18px; line-height: 1; padding: 0;
+}
+.jydl .jledin input { font-size: 24px; padding-block: 5px; }
+.jydl .jsign { height: 30px; width: 38px; }
 .jplus { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
 .jplus .jbtn:nth-child(1) { background: var(--sky); color: var(--on-color); }
 .jplus .jbtn:nth-child(2) { background: var(--mint); color: var(--on-color); }
@@ -670,6 +677,35 @@ body.judging main.gut { padding-bottom: calc(210px + env(safe-area-inset-bottom,
 .rf.near i { color: var(--on-pink); }
 .jrefcap { font-size: 11px; color: var(--muted); font-weight: 700; margin-bottom: -4px; }
 .jwhere { font-size: 12.5px; color: var(--muted); margin: 0; }
+/* 目安（設定1と比べる） */
+.jbase { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; justify-content: space-between; font-size: 12.5px; color: var(--muted); }
+.jbase span b { color: var(--ink); font-variant-numeric: tabular-nums; }
+.vd { font-size: 12px; font-weight: 900; border-radius: 999px; padding: 2px 10px; background: var(--bg); color: var(--muted); border: 1.5px solid var(--line-strong); }
+.vd.good { background: var(--pink); color: var(--on-pink); border-color: var(--edge); }
+.vd.same { background: var(--sun-soft); color: var(--ink); border-color: var(--edge); }
+.vd.bad { background: var(--sky-soft); color: var(--ink); border-color: var(--edge); }
+/* 有利区間 */
+.jyled {
+  display: flex; align-items: baseline; justify-content: center; gap: 10px; padding: 10px 14px; border-radius: 16px;
+  background: var(--led-bg); border: 2.5px solid var(--led-edge); color: var(--led-muted); font-weight: 900; font-size: 14px;
+}
+.jyled b { font-family: var(--font-led); font-weight: 400; font-size: 46px; line-height: 1; color: var(--led-fg); text-shadow: 0 0 10px var(--led-glow); font-variant-numeric: tabular-nums; }
+.jytrack { position: relative; height: 22px; border-radius: 11px; background: var(--track); border: 2px solid var(--edge); overflow: hidden; margin-top: 10px; }
+.jytrack span { position: absolute; inset: 0 auto 0 0; background: linear-gradient(90deg, var(--mint), var(--sun), var(--pink)); }
+.jytrack i { position: absolute; inset: 0; display: grid; place-items: center; font-style: normal; font-size: 11.5px; font-weight: 900; color: var(--ink); font-variant-numeric: tabular-nums; }
+#js-ysum .small { margin-top: 8px; }
+.jydl { margin: 0; display: grid; gap: 10px; }
+.jydl > div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 4px 10px; align-items: center; }
+.jydl dt { font-size: 13px; font-weight: 700; }
+.jydl dt small { display: block; font-size: 11px; color: var(--muted); font-weight: 500; }
+.jydl dd { margin: 0; font-weight: 900; font-size: 16px; text-align: right; font-variant-numeric: tabular-nums; }
+.jydl > div.st { grid-template-columns: minmax(0, 1fr); }
+.jyh { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 10px; padding-top: 10px; border-top: 2px dashed var(--line); font-size: 13px; }
+.jyh:first-of-type { border-top: 0; padding-top: 0; }
+.jyh b { font-weight: 900; }
+.jyh .tm { color: var(--muted); font-variant-numeric: tabular-nums; }
+.jyh span:not(.tm) { grid-column: 1 / -1; display: flex; justify-content: space-between; gap: 10px; color: var(--muted); }
+.jyh em { font-style: normal; font-weight: 900; color: var(--ink); font-variant-numeric: tabular-nums; }
 #js-warn:empty { display: none; }
 .jwarn { font-size: 12.5px; background: var(--memo-bg); border: 2px solid var(--memo-line); border-radius: 14px; padding: 8px 12px; display: grid; gap: 2px; }
 .jwarn p { margin: 0; }
@@ -1194,13 +1230,20 @@ body.judging main.gut { padding-bottom: calc(210px + env(safe-area-inset-bottom,
   var J = null, HINTS = {}, resetAsk = false, gPrev = null;
   var guideShow = recall('shisa.judgeGuide') !== '1';
 
-  function jBlank() { return { games: 0, r: {}, t: {}, h: {}, on: { hit: true }, log: [] }; }
+  // ga：AT中のゲーム数。y：有利区間のメモ（cut 切断したときの差枚、low その後いちばん低い差枚、now いまの差枚、hist 切断の記録）
+  function yBlank() { return { cut: null, low: null, now: null, hist: [] }; }
+  function jBlank() { return { games: 0, ga: 0, r: {}, t: {}, h: {}, on: { hit: true }, y: yBlank(), log: [] }; }
+  function clone(o) { return JSON.parse(JSON.stringify(o)); }
+  function numOrNull(v) { return typeof v === 'number' && isFinite(v) ? v : null; }
   function jLoad(m) {
     var d = null;
     try { d = JSON.parse(localStorage.getItem('shisa.judge.' + m.id) || 'null'); } catch (e) {}
     if (!d || typeof d !== 'object') return jBlank();
     var b = jBlank();
-    b.games = +d.games || 0; b.r = d.r || {}; b.t = d.t || {}; b.h = d.h || {}; b.log = d.log || [];
+    b.games = +d.games || 0; b.ga = +d.ga || 0; b.r = d.r || {}; b.t = d.t || {}; b.h = d.h || {}; b.log = d.log || [];
+    if (d.y && typeof d.y === 'object') {
+      b.y = { cut: numOrNull(d.y.cut), low: numOrNull(d.y.low), now: numOrNull(d.y.now), hist: Array.isArray(d.y.hist) ? d.y.hist : [] };
+    }
     if (d.on) b.on = d.on;
     return b;
   }
@@ -1210,6 +1253,23 @@ body.judging main.gut { padding-bottom: calc(210px + env(safe-area-inset-bottom,
     return (M.judge.games && M.judge.games.help) || '台のデータカウンターやマイスロで見られる、ATやボーナス中を除いたゲーム数です。総回転数で数えると、設定は低めに出やすくなります。';
   }
   function pOuts(r) { return r.outs || [{ b: r.b, p: r.p }]; }
+  // per：'normal' は通常時のゲーム数、'at' はAT中のゲーム数、'all' は両方を足したゲーム数で割る
+  function perOf(r) { return r.per || 'normal'; }
+  function atName() { return M.judge.atGames || 'AT中のゲーム数'; }
+  function gFor(r) {
+    var G = Math.max(0, Math.floor(J.games)), A = Math.max(0, Math.floor(J.ga || 0));
+    return perOf(r) === 'all' ? G + A : perOf(r) === 'at' ? A : G;
+  }
+  function gForName(r) { return perOf(r) === 'all' ? gName() + 'とAT中のゲーム数' : perOf(r) === 'at' ? atName() : gName(); }
+  // 有利区間：上限（差枚2400枚）まであと何枚か。数え始めていなければ null
+  function yCap() { return M.judge.cap || 2400; }
+  function yState() {
+    var y = J.y;
+    if (y.cut == null) return null;
+    var cur = y.now != null ? y.now : y.cut, low = Math.min(y.low != null ? y.low : y.cut, cur);
+    return { cur: cur, low: low, gained: cur - low, remain: yCap() - (cur - low) };
+  }
+  function coin(v) { return (v > 0 ? '＋' : v < 0 ? '−' : '±') + Math.abs(v).toLocaleString('ja-JP') + '枚'; }
   function jSave() { try { localStorage.setItem('shisa.judge.' + M.id, JSON.stringify(J)); } catch (e) {} }
   function hintKey(g, it) { return g.id + '|' + it.see + '|' + (it.sub || ''); }
 
@@ -1272,14 +1332,14 @@ body.judging main.gut { padding-bottom: calc(210px + env(safe-area-inset-bottom,
   function judgeCalc() {
     var Jd = M.judge, S = Jd.settings, L = S.map(function () { return 0; });
     var used = 0, warn = [], hard = S.map(function () { return false; });
-    var G = Math.max(0, Math.floor(J.games));
+    var G0 = Math.max(0, Math.floor(J.games));
     Jd.rates.forEach(function (r) {
-      var k = J.r[r.id] || 0;
+      var k = J.r[r.id] || 0, G = gFor(r);
       if (!rateOn(r.id)) return;
       if (!k && !G) return;
-      if (!G) { warn.push(gName() + 'を入れると「' + r.label + '」が計算に入ります。'); return; }
+      if (!G) { warn.push(gForName(r) + 'を入れると「' + r.label + '」が計算に入ります。'); return; }
       var n = Math.max(G, k);
-      if (k > G) warn.push('「' + r.label + '」が' + gName() + 'より多くなっています。');
+      if (k > G) warn.push('「' + r.label + '」が' + gForName(r) + 'より多くなっています。');
       S.forEach(function (s, i) { var p = 1 / r.p[i]; L[i] += k * Math.log(p) + (n - k) * Math.log(1 - p); });
       used++;
     });
@@ -1312,7 +1372,7 @@ body.judging main.gut { padding-bottom: calc(210px + env(safe-area-inset-bottom,
     var p = e.map(function (v) { return v / sum; });
     var top = p.indexOf(Math.max.apply(null, p));
     var high = p.reduce(function (a, v, i) { return a + (S[i] >= 4 ? v : 0); }, 0);
-    return { p: p, top: top, high: high, used: used, warn: warn, hard: hard, games: G };
+    return { p: p, top: top, high: high, used: used, warn: warn, hard: hard, games: G0 };
   }
   function pct(v) {
     if (v === 0) return '0%';
@@ -1337,7 +1397,8 @@ body.judging main.gut { padding-bottom: calc(210px + env(safe-area-inset-bottom,
     var side = '<div class="jside"><div class="jhi">' + (R.bad ? '記録が<br>食い違い' : R.used ? '設定4以上<b>' + pct(R.high) + '</b>' : 'まだ数えて<br>いません') + '</div>' +
       '<button type="button" class="jsmall" data-act="undo"' + (J.log.length ? '' : ' disabled') + '>1つ戻す</button></div>' +
       '<button type="button" class="jx" data-act="off" aria-label="下の判別バーを消す">×</button>';
-    var cap = '<div class="jcap"><span>設定判別</span><em>タップで開く ▲</em></div>';
+    var ys = yState();
+    var cap = '<div class="jcap"><span>設定判別</span><em>' + (ys ? (ys.remain > 0 ? '有利 あと' + ys.remain.toLocaleString('ja-JP') + '枚' : '有利 上限') + ' ▲' : 'タップで開く ▲') + '</em></div>';
     if (R.bad) return '<button type="button" class="jopen" data-act="open">' + cap + '<div class="jl-msg bad">示唆どうしが食い違っています。タップして記録を確かめてください。</div></button>' + side;
     return '<button type="button" class="jopen" data-act="open" aria-label="設定判別を開く">' + cap + colsHTML(R) + '</button>' + side;
   }
@@ -1367,13 +1428,13 @@ body.judging main.gut { padding-bottom: calc(210px + env(safe-area-inset-bottom,
   function jSheetHTML(R) {
     var Jd = M.judge, G = Math.max(0, Math.floor(J.games));
     var nHint = Object.keys(J.h).reduce(function (a, k) { return a + (HINTS[k] && J.h[k] > 0 ? J.h[k] : 0); }, 0);
-    var tabs = [['count', '数える'], ['hint', '示唆'], ['how', 'しくみ']];
+    var tabs = [['count', '数える'], ['hint', '示唆'], ['yuri', '有利区間'], ['how', 'しくみ']];
     // 結果と切り替えは上に固定
     var h = '<div class="js-inner"><div class="jstick"><section class="jpanel" id="js-result" aria-label="設定の見込み">' + jResultHTML(R) + '</section>' +
       '<div class="jseg"><div class="jtabs" role="tablist">' + tabs.map(function (t) {
         return '<button type="button" class="jtab" role="tab" data-act="tab" data-id="' + t[0] + '" aria-selected="' + (jTab === t[0]) + '">' + t[1] +
           (t[0] === 'hint' && nHint ? '<span class="bd">' + nHint + '</span>' : '') + '</button>';
-      }).join('') + '</div><button type="button" class="jundo" id="js-undo" data-act="undo"' + (J.log.length ? '' : ' disabled') + '>↶ 1つ戻す</button></div></div>';
+      }).join('') + '</div><button type="button" class="jundo" id="js-undo" data-act="undo"' + (J.log.length ? '' : ' disabled') + ' aria-label="1つ戻す">↶ 戻す</button></div></div>';
     h += '<div id="js-warn">' + warnHTML(R) + '</div>';
     // 使い方（初めてのときと、「使い方を見る」を押したとき）
     if (guideShow) {
@@ -1385,6 +1446,7 @@ body.judging main.gut { padding-bottom: calc(210px + env(safe-area-inset-bottom,
         '<button type="button" class="jsmall jbig jwide" data-act="guide-ok">わかった</button></section>';
     }
     if (jTab === 'hint') h += jHintTabHTML();
+    else if (jTab === 'yuri') h += jYuriHTML();
     else if (jTab === 'how') h += jHowHTML();
     else h += jCountHTML(G);
     // 使い方・リセット
@@ -1396,6 +1458,40 @@ body.judging main.gut { padding-bottom: calc(210px + env(safe-area-inset-bottom,
   }
 
   // 「数える」：ゲーム数・回数・引いた回数
+  // 電光表示の数字の欄（sign：マイナスに切り替えるボタンを付ける）
+  function ledField(id, v, unit, sign, label) {
+    return '<div class="jledin' + (sign ? ' sg' : '') + '">' +
+      (sign ? '<button type="button" class="jsign" data-act="yneg" data-id="' + sign + '" aria-label="プラスとマイナスを切り替える">±</button>' : '') +
+      '<input id="' + id + '" type="number" inputmode="numeric" step="1"' + (sign ? '' : ' min="0"') + ' value="' + (v != null && (v || sign) ? v : '') + '" placeholder="0"' +
+      (label ? ' aria-label="' + esc(label) + '"' : '') + '><span>' + unit + '</span></div>';
+  }
+  // 設定1（青ブタは設定2）の値しかわからないものは、その値と比べるだけ（計算には入れない）
+  function verdictHTML(m, obs, enough) {
+    var bs = '設定' + (m.bs || 1), base = m.kind === 'pair' ? m.base + '%' : '1/' + m.base;
+    var v = '';
+    if (!enough) v = '<b class="vd">回数が少ないうちは比べられません</b>';
+    else {
+      var rel = m.kind === 'pair' ? (obs - m.base) / m.base : (m.base - obs) / m.base;
+      v = rel > 0.08 ? '<b class="vd good">' + bs + 'より良い</b>' : rel < -0.08 ? '<b class="vd bad">' + bs + 'より悪い</b>' : '<b class="vd same">' + bs + 'と同じくらい</b>';
+    }
+    return '<div class="jbase"><span>' + bs + 'の値：<b>' + base + '</b></span>' + v + '</div>';
+  }
+  function markRow(m) {
+    if (m.kind === 'pair') {
+      var t = J.t[m.id] || [], a = t[0] || 0, hh = t[1] || 0, op = a ? hh / a * 100 : 0;
+      return '<div class="jitem"><div class="jhead"><span class="nm">' + esc(m.label) + '<span class="tag">目安</span></span>' +
+        (a ? '<span class="ob">いま ' + op.toFixed(1) + '%</span>' : '') + '</div>' +
+        (m.where ? '<p class="jwhere">' + esc(m.where) + '</p>' : '') +
+        '<div class="jctr pair">' + counterHTML('t', m.id, 0, a, m.a) + counterHTML('t', m.id, 1, hh, m.b) + '</div>' +
+        verdictHTML(m, op, a >= 5) + '</div>';
+    }
+    var k = J.r[m.id] || 0, g = gFor(m), obs = k && g ? g / k : 0;
+    return '<div class="jitem"><div class="jhead"><span class="nm">' + esc(m.label) + '<span class="tag">目安</span></span>' +
+      (obs ? '<span class="ob">いま 1/' + obs.toFixed(1) + '</span>' : '') + '</div>' +
+      (m.where ? '<p class="jwhere">' + esc(m.where) + '</p>' : '') +
+      '<div class="jctr">' + counterHTML('r', m.id, null, k, '', m.label) + '</div>' + verdictHTML(m, obs, k >= 3 && g > 0) + '</div>';
+  }
+
   function jCountHTML(G) {
     var Jd = M.judge;
     var h = '<section class="jcard c-sun"><h3>' + esc(gName()) + '</h3><div class="jgames"><label for="j-games">' + esc(gHelp()) + '</label>' +
@@ -1404,7 +1500,7 @@ body.judging main.gut { padding-bottom: calc(210px + env(safe-area-inset-bottom,
         return '<button type="button" class="jbtn" data-act="g" data-d="' + v + '">＋' + v + '</button>';
       }).join('') + '</div></div></section>';
     var rateRow = function (r) {
-      var k = J.r[r.id] || 0, on = rateOn(r.id), obs = k && G ? G / k : 0;
+      var k = J.r[r.id] || 0, on = rateOn(r.id), g = gFor(r), obs = k && g ? g / k : 0;
       var near = obs ? nearest(r.p, function (p) { return Math.abs(Math.log(obs) - Math.log(p)); }) : [];
       return '<div class="jitem"><div class="jhead"><span class="nm">' + esc(r.label) + '</span>' +
         (obs ? '<span class="ob">いま 1/' + obs.toFixed(1) + '</span>' : '') + '</div>' +
@@ -1413,13 +1509,26 @@ body.judging main.gut { padding-bottom: calc(210px + env(safe-area-inset-bottom,
         '<span class="tk"></span>計算に入れる</button></div>' + refsHTML(r.p, near) + '</div>';
     };
     var refNote = '<p class="small">数字は設定ごとの「何回に1回」か。いまの数値にいちばん近い設定がピンクになります。</p>';
-    var main = Jd.rates.filter(function (r) { return !r.sec; });
+    var normal = function (r) { return perOf(r) === 'normal'; };
+    var main = Jd.rates.filter(function (r) { return !r.sec && normal(r); });
     if (main.length) h += '<section class="jcard"><h3>' + esc(gName()) + 'に対する回数</h3>' + refNote + main.map(rateRow).join('') + '</section>';
     Object.keys(Jd.secs || {}).forEach(function (k) {
       var sec = Jd.secs[k];
       h += '<section class="jcard c-grape"><h3>' + esc(sec.title) + '</h3>' + (sec.note ? '<p class="small">' + esc(sec.note) + '</p>' : '') +
         Jd.rates.filter(function (r) { return r.sec === k; }).map(rateRow).join('') + '</section>';
     });
+    // AT中に数えるもの（AT中のゲーム数で割るもの・通常時と合わせて割るもの・AT中の目安）
+    var atRates = Jd.rates.filter(function (r) { return !normal(r); });
+    var marks = Jd.marks || [], atMarks = marks.filter(function (m) { return m.per === 'at'; }), nMarks = marks.filter(function (m) { return m.per !== 'at'; });
+    if (atRates.length || atMarks.length) {
+      var needGA = atRates.length || atMarks.some(function (m) { return m.kind !== 'pair'; });
+      h += '<section class="jcard c-pink"><h3>' + esc(Jd.atTitle || 'AT中に数えるもの') + '</h3>' + (Jd.atNote ? '<p class="small">' + esc(Jd.atNote) + '</p>' : '') +
+        (needGA ? '<div class="jgames"><label for="j-ga">' + esc(atName()) + '（ボーナス・AT・ST中に回したゲーム数）</label>' + ledField('j-ga', J.ga || 0, 'G') +
+          '<div class="jplus">' + [1, 10, 100, 500].map(function (v) { return '<button type="button" class="jbtn" data-act="ga" data-d="' + v + '">＋' + v + '</button>'; }).join('') + '</div></div>' : '') +
+        atRates.map(rateRow).join('') + atMarks.map(markRow).join('') + '</section>';
+    }
+    if (nMarks.length) h += '<section class="jcard c-sun"><h3>設定1と比べる目安（計算には入れない）</h3>' +
+      '<p class="small">設定1の値しかわかっていないものです。いまの数値が設定1より良いかどうかだけを出します。</p>' + nMarks.map(markRow).join('') + '</section>';
     if ((Jd.pairs || []).length) h += '<section class="jcard c-mint"><h3>引いた回数と、そこから当たった回数</h3>' +
       '<p class="small">数字は設定ごとの当たる割合。いまの割合にいちばん近い設定がピンクになります。</p>' + Jd.pairs.map(function (r) {
         var t = J.t[r.id] || [], a = t[0] || 0, outs = pOuts(r), many = outs.length > 1;
@@ -1460,6 +1569,47 @@ body.judging main.gut { padding-bottom: calc(210px + env(safe-area-inset-bottom,
     return h;
   }
 
+  // 「有利区間」：いまの差枚と切断を記録して、上限（差枚2400枚）まであと何枚かを出す
+  function ySumHTML() {
+    var st = yState(), cap = yCap();
+    if (!st) return '';
+    var w = Math.min(100, Math.max(0, st.gained / cap * 100));
+    return '<div class="jyled"><span>あと</span><b>' + Math.max(0, st.remain).toLocaleString('ja-JP') + '</b><span>枚</span></div>' +
+      '<div class="jytrack" role="img" aria-label="' + esc('上限' + cap + '枚のうち' + st.gained + '枚') + '"><span style="width:' + w + '%"></span><i>' + st.gained.toLocaleString('ja-JP') + ' / ' + cap.toLocaleString('ja-JP') + '枚</i></div>' +
+      '<p class="small">' + (st.remain > 0
+        ? '差枚が <b>' + coin(st.low + cap) + '</b> まで増えると、上限で有利区間が切れます。'
+        : '上限に届いています。有利区間が切れたら、下のボタンを押してください。') + '</p>';
+  }
+  function jYuriHTML() {
+    var y = J.y, st = yState(), cap = yCap();
+    var h = '<section class="jcard c-mint"><h3>いまの差枚</h3>' +
+      '<p class="small">データカウンターのグラフに出ている、この台のいまの差枚です。マイナスのときは「±」で切り替えます。</p>' +
+      ledField('j-ynow', y.now != null ? y.now : (y.cut != null ? y.cut : 0), '枚', 'now', 'いまの差枚') +
+      '<div class="jplus">' + [-100, -10, 10, 100].map(function (d) {
+        return '<button type="button" class="jbtn' + (d < 0 ? ' minus' : '') + '" data-act="yadd" data-d="' + d + '">' + (d > 0 ? '＋' : '−') + Math.abs(d) + '</button>';
+      }).join('') + '</div></section>';
+    if (!st) {
+      h += '<section class="jcard c-sun"><h3>次に有利区間が切れるまで</h3>' +
+        '<p class="small">有利区間が切れたとき（打ち始めに有利区間ランプが消えているときも）に押すと、そこから数え始めます。切れたあといちばん低かった差枚から' + cap.toLocaleString('ja-JP') + '枚増えると、上限で有利区間が切れます。</p>' +
+        '<button type="button" class="jgo" data-act="ystart">いまの差枚から数え始める</button></section>';
+    } else {
+      h += '<section class="jcard c-sun"><h3>次に有利区間が切れるまで</h3><div id="js-ysum">' + ySumHTML() + '</div>' +
+        '<dl class="jydl"><div><dt>切れたときの差枚</dt><dd>' + coin(y.cut) + '</dd></div>' +
+        '<div class="st"><dt>その後いちばん低かった差枚<small>グラフの谷と違えば直せます</small></dt><dd>' + ledField('j-ylow', st.low, '枚', 'low', 'その後いちばん低かった差枚') + '</dd></div></dl>' +
+        '<button type="button" class="jgo" data-act="ycut">有利区間が切れた（いまの差枚で記録）</button></section>';
+    }
+    if (y.hist.length) {
+      h += '<section class="jcard c-grape"><h3>切れたときの記録</h3>' + y.hist.map(function (e, i) {
+        return { e: e, n: i + 1 };
+      }).reverse().map(function (x) {
+        return '<div class="jyh"><b>' + x.n + '回目</b><span class="tm">' + esc(x.e.t || '') + '</span>' +
+          '<span>切れたときの差枚<em>' + coin(x.e.at) + '</em></span>' +
+          '<span>その有利区間で増えた枚数<em>' + (x.e.gain == null ? '—' : x.e.gain.toLocaleString('ja-JP') + '枚') + '</em></span></div>';
+      }).join('') + '</section>';
+    }
+    return h;
+  }
+
   // 「しくみ」：計算のしかたと注意
   function jHowHTML() {
     var Jd = M.judge, S = Jd.settings;
@@ -1467,6 +1617,9 @@ body.judging main.gut { padding-bottom: calc(210px + env(safe-area-inset-bottom,
       '<p>最初はどの設定も同じ見込みとして、数えたものが各設定でどれくらい起きやすいかを掛け合わせています。</p>' +
       '<p>' + esc(gName()) + 'に対する回数は「計算に入れる」がONのものだけ使います（＋を押すと自動でON）。数えていない項目が0回として扱われないようにするためです。</p>' +
       '<p>「濃厚」の示唆はその設定を候補から外します。出現率がわかっている示唆はその値で、わからない奇数・偶数や高設定示唆（弱・強）は仮の重みで少しだけ寄せています。「推測」の示唆は外さずに弱めに数えます。</p>' +
+      (Jd.rates.some(function (r) { return perOf(r) !== 'normal'; }) ? '<p>AT中にも同じ確率で出るものは、' + esc(gName()) + 'とAT中のゲーム数を足して割ります。AT中の分も数えると、早く判別できます。</p>' : '') +
+      ((Jd.marks || []).length ? '<p>「目安」は設定1（青ブタは設定2）の値しかわからないものです。計算には入れず、その値より良いか悪いかだけを出します。</p>' : '') +
+      '<p>有利区間は、切れたあといちばん低かった差枚から' + yCap().toLocaleString('ja-JP') + '枚増えると上限で切れます。差枚はデータカウンターのグラフの値で、実際の枚数と少しずれることがあります。</p>' +
       '<p>電光表示の柱の色は、示唆の色と同じ順です。</p>' +
       '<div class="jkey">' + S.map(function (s) { return '<span class="' + kc(s).trim() + '">設定' + s + '</span>'; }).join('') + '</div></section>' +
       ((Jd.note || (Jd.cautions || []).length) ? '<section class="jcard jhow c-sun"><h3>この機種の注意</h3><ul>' +
@@ -1512,6 +1665,8 @@ body.judging main.gut { padding-bottom: calc(210px + env(safe-area-inset-bottom,
         if (box) box.innerHTML = jResultHTML(R);
         if (wb) wb.innerHTML = warnHTML(R);
         if (ub) ub.disabled = !J.log.length;
+        var ysum = document.getElementById('js-ysum');
+        if (ysum) ysum.innerHTML = ySumHTML();
       }
     }
   }
@@ -1530,6 +1685,9 @@ body.judging main.gut { padding-bottom: calc(210px + env(safe-area-inset-bottom,
   function jApply(op, record) {
     if (op[0] === 'g') J.games = Math.max(0, Math.floor(J.games) + op[1]);
     else if (op[0] === 'G') J.games = op[2];
+    else if (op[0] === 'a') J.ga = Math.max(0, Math.floor(J.ga || 0) + op[1]);
+    else if (op[0] === 'A') J.ga = op[2];
+    else if (op[0] === 'Y') J.y = clone(op[2]);
     else if (op[0] === 'r') {
       if (record && op[2] > 0) op[3] = !!J.on[op[1]];
       J.r[op[1]] = Math.max(0, (J.r[op[1]] || 0) + op[2]);
@@ -1552,6 +1710,9 @@ body.judging main.gut { padding-bottom: calc(210px + env(safe-area-inset-bottom,
     if (!op) return;
     if (op[0] === 'g') jApply(['g', -op[1]]);
     else if (op[0] === 'G') jApply(['G', op[2], op[1]]);
+    else if (op[0] === 'a') jApply(['a', -op[1]]);
+    else if (op[0] === 'A') jApply(['A', op[2], op[1]]);
+    else if (op[0] === 'Y') jApply(['Y', op[2], op[1]]);
     else if (op[0] === 'r') {
       jApply(['r', op[1], -op[2]]);
       if (op[3] === false) J.on[op[1]] = false;
@@ -1586,6 +1747,23 @@ body.judging main.gut { padding-bottom: calc(210px + env(safe-area-inset-bottom,
     if (act === 'reset-yes') { J = jBlank(); resetAsk = false; jSave(); show(M.id, current ? current.id : null, false); jRefresh(true); return; }
     if (act === 'on') { if (J.r[id] > 0) return; jApply(['on', id, !J.on[id]], true); jRefresh(true); return; }
     if (act === 'g') jApply(['g', d], true);
+    else if (act === 'ga') jApply(['a', d], true);
+    else if (act === 'ystart' || act === 'ycut' || act === 'yadd' || act === 'yneg') {
+      var prevY = clone(J.y), y = J.y;
+      if (act === 'ystart') { var s0 = y.now != null ? y.now : 0; y.now = s0; y.cut = s0; y.low = s0; }
+      else if (act === 'ycut') {
+        var st = yState(), d0 = new Date();
+        y.hist.push({ at: st.cur, gain: st.gained, t: ('0' + d0.getHours()).slice(-2) + ':' + ('0' + d0.getMinutes()).slice(-2) });
+        if (y.hist.length > 50) y.hist.shift();
+        y.cut = st.cur; y.low = st.cur; y.now = st.cur;
+      }
+      else if (act === 'yneg' && id === 'low') { var sl = yState(); if (sl) y.low = -sl.low; }
+      else {
+        y.now = act === 'yadd' ? (y.now != null ? y.now : (y.cut != null ? y.cut : 0)) + d : -(y.now || 0);
+        if (y.cut != null) y.low = Math.min(y.low != null ? y.low : y.cut, y.now);
+      }
+      jApply(['Y', prevY, clone(y)], true);
+    }
     else if (act === 'r') { if (d < 0 && !(J.r[id] > 0)) return; jApply(['r', id, d], true); syncCnt('r:' + id); }
     else if (act === 't') { var i = +b.getAttribute('data-i'), t = J.t[id] || []; if (d < 0 && !(t[i] > 0)) return; jApply(['t', id, i, d], true); }
     else if (act === 'h') { if (d < 0 && !(J.h[id] > 0)) return; jApply(['h', id, d], true); syncCnt(id); }
@@ -1618,20 +1796,35 @@ body.judging main.gut { padding-bottom: calc(210px + env(safe-area-inset-bottom,
   });
   jBar.addEventListener('click', function (e) { var b = e.target.closest('[data-act]'); if (b) jAct(b); });
   jBody.addEventListener('click', function (e) { var b = e.target.closest('[data-act]'); if (b) jAct(b); });
+  var FIELD = { 'j-games': 'games', 'j-ga': 'ga', 'j-ynow': 'now', 'j-ylow': 'low' };
   jBody.addEventListener('input', function (e) {
-    if (e.target.id !== 'j-games') return;
-    var v = Math.max(0, Math.floor(+e.target.value || 0));
-    if (gPrev == null) gPrev = J.games;
-    J.games = v;
+    var f = FIELD[e.target.id];
+    if (!f) return;
+    var v = Math.floor(+e.target.value || 0);
+    if (f === 'games' || f === 'ga') {
+      if (gPrev == null) gPrev = J[f];
+      J[f] = Math.max(0, v);
+    } else {
+      if (gPrev == null) gPrev = clone(J.y);
+      J.y[f] = e.target.value === '' ? null : v;
+    }
     jSave();
     jRefresh(false);
     if (judgeOn) jBar.innerHTML = '<div class="jbar-in">' + jBarHTML(judgeCalc()) + '</div>';
   });
   jBody.addEventListener('change', function (e) {
-    if (e.target.id !== 'j-games') return;
-    var prev = gPrev == null ? J.games : gPrev;
+    var f = FIELD[e.target.id];
+    if (!f) return;
+    var prev = gPrev;
     gPrev = null;
-    if (prev !== J.games) { J.log.push(['G', prev, J.games]); jSave(); }
+    if (f === 'games' || f === 'ga') {
+      if (prev != null && prev !== J[f]) J.log.push([f === 'games' ? 'G' : 'A', prev, J[f]]);
+    } else {
+      var y = J.y;
+      if (f === 'now' && y.cut != null && y.now != null) y.low = Math.min(y.low != null ? y.low : y.cut, y.now);
+      if (prev && JSON.stringify(prev) !== JSON.stringify(y)) J.log.push(['Y', prev, clone(y)]);
+    }
+    jSave();
     jRefresh(true);
   });
   document.getElementById('js-close').addEventListener('click', function () { jSheet.close(); });

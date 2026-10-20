@@ -1,5 +1,5 @@
 // node src/build-app.js が作るファイル。直接書き換えない
-const VERSION = 'a336b66f7334';
+const VERSION = '0b002a46827b';
 const CACHE = 'shisa-' + VERSION;
 const FONT_CACHE = 'shisa-fonts';
 const IMG_CACHE = 'shisa-img';
