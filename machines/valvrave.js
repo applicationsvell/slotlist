@@ -7,6 +7,8 @@
     id: 'valvrave',
     short: 'ヴァルヴレイヴ',
     full: 'パチスロ 革命機ヴァルヴレイヴ',
+    // 看板の色（上が a、下が b。ink: 'dark' は文字を紺にする）。初代は朱色
+    color: { a: '#FFB287', b: '#E5602B' },
     g: G,
     spec: [
       ['メーカー', 'SANKYO'],

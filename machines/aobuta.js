@@ -9,6 +9,8 @@
     id: 'aobuta',
     short: '青ブタ',
     full: 'L青春ブタ野郎はバニーガール先輩の夢を見ない',
+    // 看板の色（上が a、下が b。ink: 'dark' は文字を紺にする）。七里ヶ浜の空
+    color: { a: '#7CCBFF', b: '#2F8BEA' },
     g: G,
     // 前のURL（#set など）で開いても近い項目に飛べるように
     old: { set: 'coins', zone: 'crystal', cz: 'czheroine', st: 'judge' },

@@ -7,6 +7,8 @@
     id: 'paripi',
     short: 'パリピ孔明',
     full: 'スマスロ パリピ孔明',
+    // 看板の色（上が a、下が b。ink: 'dark' は文字を紺にする）。パーティーのライム
+    color: { a: '#D2F27A', b: '#6DB716', ink: 'dark' },
     g: G,
     spec: [
       ['メーカー', '山佐'],
