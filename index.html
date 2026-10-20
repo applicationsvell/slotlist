@@ -511,7 +511,7 @@ body.judging main.gut { padding-bottom: calc(200px + env(safe-area-inset-bottom,
 .jref { font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums; line-height: 1.5; }
 .jctr { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
 .jctr.pair { display: grid; gap: 8px; }
-.jctr.pair .jone { display: grid; grid-template-columns: 6.5em 44px 2.6em 44px; }
+.jctr.pair .jone { display: grid; grid-template-columns: minmax(0, 1fr) 44px 2.6em 44px; }
 .jone { display: inline-flex; align-items: center; gap: 6px; }
 .jone .cap { font-size: 12.5px; font-weight: 700; color: var(--muted); }
 .jone .num { min-width: 2.2em; text-align: center; font-size: 18px; font-weight: 900; font-variant-numeric: tabular-nums; }
@@ -1007,17 +1007,31 @@ details.jmore summary { cursor: pointer; font-size: 13px; font-weight: 700; colo
     if (d.on) b.on = d.on;
     return b;
   }
+  // 回転数は「通常時のゲーム数」で数える（一撃の判別ツールと同じ）
+  function gName() { return (M.judge.games && M.judge.games.label) || '通常時のゲーム数'; }
+  function gHelp() {
+    return (M.judge.games && M.judge.games.help) || '台のデータカウンターやマイスロで見られる、ATやボーナス中を除いたゲーム数です。総回転数で数えると、設定は低めに出やすくなります。';
+  }
+  function pOuts(r) { return r.outs || [{ b: r.b, p: r.p }]; }
   function jSave() { try { localStorage.setItem('shisa.judge.' + M.id, JSON.stringify(J)); } catch (e) {} }
   function hintKey(g, it) { return g.id + '|' + it.see + '|' + (it.sub || ''); }
 
   // 示唆の文言から、設定ごとの出やすさの重みを決める
-  // 濃厚・否定は0で除外。奇数・偶数や弱・強は出現率が公表されていないため仮の重み
+  // 出現率がわかっているもの（it.w）はその値を使う。濃厚・否定は0で除外。
+  // 奇数・偶数や弱・強は出現率が公表されていないため仮の重み
   function hintWeights(it, S) {
+    if (it.w) return it.w.map(function (v) { return v > 0 ? v : 0; });
     var t = it.res + ' ' + (it.sub || ''), lo = S[0], hi = S[S.length - 1], m;
     var w = S.map(function () { return 1; });
     var x = function (s) { return hi > lo ? (s - lo) / (hi - lo) : 0; };
-    if (it.lv === 'rain' || /^設定6/.test(it.res)) w = S.map(function (s) { return s === 6 ? 1 : 0; });
-    else if ((m = it.res.match(/設定(\d)(?:・\d)*以上/))) w = S.map(function (s) { return s >= +m[1] ? 1 : 0; });
+    var only = function (f) { return S.map(function (s) { return f(s) ? 1 : 0; }); };
+    if (it.lv === 'rain' || /^設定6/.test(it.res)) w = only(function (s) { return s === 6; });
+    else if ((m = it.res.match(/設定(\d)(?:・\d)*以上(?!の|に)/))) w = only(function (s) { return s >= +m[1]; });
+    else if ((m = it.res.match(/設定((?:\d[・\/])+\d)濃厚/))) {
+      var ok = m[1].split(/[・\/]/).map(Number);
+      w = only(function (s) { return ok.indexOf(s) !== -1; });
+    }
+    else if ((m = t.match(/(奇数|偶数)設定濃厚/))) { var od = m[1] === '奇数'; w = only(function (s) { return (s % 2 === 1) === od; }); }
     else if (/奇数|偶数/.test(t)) {
       var odd = /奇数/.test(t), f = /強/.test(t) ? 1.4 : /弱/.test(t) ? 1.1 : 1.2;
       w = S.map(function (s) { return (s % 2 === 1) === odd ? f : 1; });
@@ -1027,7 +1041,7 @@ details.jmore summary { cursor: pointer; font-size: 13px; font-weight: 700; colo
       var k = /強/.test(t) ? 1.5 : /中/.test(t) ? 1.0 : 0.5;
       w = S.map(function (s) { return 1 + k * x(s); });
     }
-    if ((m = t.match(/設定(\d)を否定/))) w = w.map(function (v, i) { return S[i] === +m[1] ? 0 : v; });
+    if ((m = t.match(/設定(\d)を?否定/))) w = w.map(function (v, i) { return S[i] === +m[1] ? 0 : v; });
     if (it.tag === '推測') w = w.map(function (v) { return v === 0 ? 0.15 : v; });
     return w;
   }
@@ -1066,18 +1080,25 @@ details.jmore summary { cursor: pointer; font-size: 13px; font-weight: 700; colo
       var k = J.r[r.id] || 0;
       if (!rateOn(r.id)) return;
       if (!k && !G) return;
-      if (!G) { warn.push('総回転数を入れると「' + r.label + '」が計算に入ります。'); return; }
+      if (!G) { warn.push(gName() + 'を入れると「' + r.label + '」が計算に入ります。'); return; }
       var n = Math.max(G, k);
-      if (k > G) warn.push('「' + r.label + '」が総回転数より多くなっています。');
+      if (k > G) warn.push('「' + r.label + '」が' + gName() + 'より多くなっています。');
       S.forEach(function (s, i) { var p = 1 / r.p[i]; L[i] += k * Math.log(p) + (n - k) * Math.log(1 - p); });
       used++;
     });
-    Jd.pairs.forEach(function (r) {
-      var t = J.t[r.id] || [0, 0], a = t[0], h = Math.min(t[1], t[0]);
-      if (t[1] > t[0]) warn.push('「' + r.label + '」で当たった回数が引いた回数より多くなっています。');
-      if (!a) return;
-      S.forEach(function (s, i) { var q = r.p[i] / 100; L[i] += h * Math.log(q) + (a - h) * Math.log(1 - q); });
-      used++;
+    // 引いた回数と当たった回数（当たり方が複数あるときは、それぞれ別に掛け合わせる）
+    (Jd.pairs || []).forEach(function (r) {
+      var t = J.t[r.id] || [], a = t[0] || 0;
+      pOuts(r).forEach(function (o, j) {
+        var raw = t[j + 1] || 0, h = Math.min(raw, a);
+        if (raw > a) warn.push('「' + r.label + '」で「' + o.b + '」が「' + r.a + '」より多くなっています。');
+        if (!a) return;
+        S.forEach(function (s, i) {
+          var q = o.p[i] / 100;
+          L[i] += (h ? h * Math.log(q) : 0) + (a > h ? (a - h) * Math.log(1 - q) : 0);
+        });
+      });
+      if (a) used++;
     });
     Object.keys(J.h).forEach(function (key) {
       var c = J.h[key], info = HINTS[key];
@@ -1129,8 +1150,8 @@ details.jmore summary { cursor: pointer; font-size: 13px; font-weight: 700; colo
     // 使い方（初めてのときと、「使い方を見る」を押したとき）
     if (guideShow) {
       h += '<section class="jcard jguide"><h3>設定判別ツールの使い方</h3><ol class="jsteps">' +
-        '<li><b>総回転数を入れる</b><span>台のデータカウンターの総回転数を、下の欄に入れるか「＋」ボタンで足します。</span></li>' +
-        '<li><b>当たりの回数を数える</b><span>初当りやアオハルチャンスなどを、この画面の「＋」で数えます。</span></li>' +
+        '<li><b>' + esc(gName()) + 'を入れる</b><span>ATやボーナス中を除いたゲーム数を、下の欄に入れるか「＋」ボタンで足します。</span></li>' +
+        '<li><b>当たりの回数を数える</b><span>初当りやCZなどを、この画面の「＋」で数えます。</span></li>' +
         '<li><b>示唆を見たら「＋1」</b><span>「示唆のページへ」で戻ると、終了画面などのカードに「＋1」ボタンが出ています。見た示唆を押してください。</span></li>' +
         '</ol><p class="small">数えた結果は画面の下のバーにいつも出ます。バーをタップすると、この画面に戻れます。</p>' +
         '<button type="button" class="jsmall jbig jwide" data-act="guide-ok">わかった</button></section>';
@@ -1142,13 +1163,13 @@ details.jmore summary { cursor: pointer; font-size: 13px; font-weight: 700; colo
       '<p class="small">ONにすると、示唆のカードに「＋1」ボタンが出て、画面の下に結果のバーが出ます。</p>' +
       '<div class="jctr"><button type="button" class="jsmall jmid jon" data-act="mode" aria-pressed="' + (judgeOn ? 'true' : 'false') + '">示唆ページの「＋1」：' + (judgeOn ? 'ON' : 'OFF') + '</button>' +
       '<button type="button" class="jsmall jbig" data-act="goto">示唆のページへ ›</button></div></section>';
-    // 総回転数
-    h += '<section class="jcard"><h3>総回転数</h3><div class="jgames"><label for="j-games">データカウンターの総回転数（直接入力もできます）</label>' +
+    // 通常時のゲーム数
+    h += '<section class="jcard"><h3>' + esc(gName()) + '</h3><div class="jgames"><label for="j-games">' + esc(gHelp()) + '（直接入力もできます）</label>' +
       '<input id="j-games" type="number" inputmode="numeric" min="0" step="1" value="' + (G || '') + '" placeholder="0">' +
       '<div class="jplus">' + [1, 10, 100, 500].map(function (v) {
         return '<button type="button" class="jbtn" data-act="g" data-d="' + v + '">＋' + v + '</button>';
       }).join('') + '</div></div></section>';
-    // 総回転数に対する回数
+    // ゲーム数に対する回数
     var rateRow = function (r) {
       var k = J.r[r.id] || 0;
       return '<div class="jitem"><div class="jhead"><span class="nm">' + esc(r.label) + '</span>' +
@@ -1157,20 +1178,21 @@ details.jmore summary { cursor: pointer; font-size: 13px; font-weight: 700; colo
         '<button type="button" class="jsmall jon" data-act="on" data-id="' + esc(r.id) + '" aria-pressed="' + (rateOn(r.id) ? 'true' : 'false') + '">' + (rateOn(r.id) ? '計算に入れる：ON' : '計算に入れる：OFF') + '</button></div>' +
         '<div class="jref">' + S.map(function (s, i) { return '設定' + s + ' 1/' + r.p[i]; }).join('・') + '</div></div>';
     };
-    h += '<section class="jcard"><h3>総回転数に対する回数</h3>' + Jd.rates.filter(function (r) { return !r.sec; }).map(rateRow).join('') + '</section>';
+    var main = Jd.rates.filter(function (r) { return !r.sec; });
+    if (main.length) h += '<section class="jcard"><h3>' + esc(gName()) + 'に対する回数</h3>' + main.map(rateRow).join('') + '</section>';
     Object.keys(Jd.secs || {}).forEach(function (k) {
       var sec = Jd.secs[k];
       h += '<section class="jcard"><h3>' + esc(sec.title) + '</h3>' + (sec.note ? '<p class="small">' + esc(sec.note) + '</p>' : '') +
         Jd.rates.filter(function (r) { return r.sec === k; }).map(rateRow).join('') + '</section>';
     });
     // 引いた回数と当たった回数
-    h += '<section class="jcard"><h3>引いた回数と、そこから当たった回数</h3>' + Jd.pairs.map(function (r) {
-      var t = J.t[r.id] || [0, 0];
+    if ((Jd.pairs || []).length) h += '<section class="jcard"><h3>引いた回数と、そこから当たった回数</h3>' + Jd.pairs.map(function (r) {
+      var t = J.t[r.id] || [], a = t[0] || 0, outs = pOuts(r), many = outs.length > 1;
       return '<div class="jitem"><div class="jhead"><span class="nm">' + esc(r.label) + '</span>' +
-        (t[0] ? '<span class="ob">いま ' + (t[1] / t[0] * 100).toFixed(1) + '%</span>' : '') + '</div>' +
+        (a ? '<span class="ob">いま ' + outs.map(function (o, j) { return (many ? esc(o.b) + ' ' : '') + ((t[j + 1] || 0) / a * 100).toFixed(1) + '%'; }).join('・') + '</span>' : '') + '</div>' +
         (r.where ? '<p class="small" style="margin:0">' + esc(r.where) + '</p>' : '') +
-        '<div class="jctr pair">' + counterHTML('t', r.id, 0, t[0], r.a) + counterHTML('t', r.id, 1, t[1], r.b) + '</div>' +
-        '<div class="jref">' + S.map(function (s, i) { return '設定' + s + ' ' + r.p[i] + '%'; }).join('・') + '</div></div>';
+        '<div class="jctr pair">' + counterHTML('t', r.id, 0, a, r.a) + outs.map(function (o, j) { return counterHTML('t', r.id, j + 1, t[j + 1] || 0, o.b); }).join('') + '</div>' +
+        outs.map(function (o) { return '<div class="jref">' + (many ? esc(o.b) + '：' : '') + S.map(function (s, i) { return '設定' + s + ' ' + o.p[i] + '%'; }).join('・') + '</div>'; }).join('') + '</div>';
     }).join('') + '</section>';
     // 示唆
     var list = function (kind) {
@@ -1184,14 +1206,15 @@ details.jmore summary { cursor: pointer; font-size: 13px; font-weight: 700; colo
     var sl = list('set'), ml = list('memo');
     h += '<section class="jcard"><h3>数えた示唆（計算に入る）</h3>' +
       (sl || '<p class="small">示唆のページ（設定示唆タブ）で「＋1」を押すと、ここに入ります。</p>') + '</section>';
-    h += '<section class="jcard"><h3>モード示唆のメモ（計算には入れない）</h3>' +
-      (ml || '<p class="small">ステージ・クリスタル・アイキャッチの「＋1 メモ」で数えたものが入ります。次の当たりが早そうかの目安にしてください。</p>') + '</section>';
+    var memoNames = (Jd.memo || []).map(function (id) { var g = groupById(M, id); return g ? g.title : ''; }).filter(Boolean);
+    if (memoNames.length) h += '<section class="jcard"><h3>モード示唆のメモ（計算には入れない）</h3>' +
+      (ml || '<p class="small">' + esc(memoNames.join('・')) + 'の「＋1 メモ」で数えたものが入ります。次の当たりが早そうかの目安にしてください。</p>') + '</section>';
     // 注意
     h += '<section class="jcard"><h3>計算のしかた</h3>' +
       '<p class="small">最初はどの設定も同じ見込みとして、数えたものが各設定でどれくらい起きやすいかを掛け合わせています。</p>' +
-      '<p class="small">総回転数に対する回数は「計算に入れる：ON」のものだけ使います（＋を押すと自動でON）。数えていない項目が0回として扱われないようにするためです。</p>' +
-      '<p class="small">「濃厚」の示唆はその設定より下を候補から外します。奇数・偶数、高設定示唆（弱・強）は出現率が公表されていないため、仮の重みで少しだけ寄せています。「推測」の示唆は外さずに弱めに数えます。</p>' +
-      '<p class="small">' + esc(Jd.note) + '</p>' + (Jd.cautions || []).map(function (c) { return '<p class="small">' + esc(c) + '</p>'; }).join('') + '</section>';
+      '<p class="small">' + esc(gName()) + 'に対する回数は「計算に入れる：ON」のものだけ使います（＋を押すと自動でON）。数えていない項目が0回として扱われないようにするためです。</p>' +
+      '<p class="small">「濃厚」の示唆はその設定を候補から外します。出現率がわかっている示唆はその値で、わからない奇数・偶数や高設定示唆（弱・強）は仮の重みで少しだけ寄せています。「推測」の示唆は外さずに弱めに数えます。</p>' +
+      (Jd.note ? '<p class="small">' + esc(Jd.note) + '</p>' : '') + (Jd.cautions || []).map(function (c) { return '<p class="small">' + esc(c) + '</p>'; }).join('') + '</section>';
     // 戻す・リセット
     h += '<div class="jfoot"><button type="button" class="jsmall" data-act="undo"' + (J.log.length ? '' : ' disabled') + '>1つ戻す</button>' +
       '<button type="button" class="jsmall" data-act="guide">使い方を見る</button>' +
@@ -1206,7 +1229,7 @@ details.jmore summary { cursor: pointer; font-size: 13px; font-weight: 700; colo
       return '<h3>設定の見込み</h3><div class="jmsg">数えた示唆どうしが食い違っていて、どの設定も当てはまりません。押し間違いがないか、下の「数えた示唆」を確かめてください（「推測」の示唆が外れた可能性もあります）。</div>';
     }
     var msg;
-    if (!R.used) msg = 'まだ何も数えていません。まずは総回転数と初当りの回数を入れてみましょう。';
+    if (!R.used) msg = 'まだ何も数えていません。まずは' + gName() + 'と初当りの回数を入れてみましょう。';
     else if (R.games < 1500 && !R.hard.some(Boolean)) msg = 'まだ回数が少ないので、結果はぶれやすいです。回すほど正確になります。';
     else if (R.p[R.top] >= 0.6) msg = '設定' + S[R.top] + 'の見込みがいちばん高いです。';
     else msg = 'いまは設定' + S[R.top] + 'がいちばん近いですが、まだはっきりしません。';
@@ -1262,7 +1285,12 @@ details.jmore summary { cursor: pointer; font-size: 13px; font-weight: 700; colo
       if (op[2] > 0) J.on[op[1]] = true;
     }
     else if (op[0] === 'on') J.on[op[1]] = op[2];
-    else if (op[0] === 't') { var t = J.t[op[1]] || [0, 0]; t[op[2]] = Math.max(0, t[op[2]] + op[3]); J.t[op[1]] = t; }
+    else if (op[0] === 't') {
+      var t = J.t[op[1]] || [];
+      for (var k = 0; k <= op[2]; k++) t[k] = t[k] || 0;
+      t[op[2]] = Math.max(0, t[op[2]] + op[3]);
+      J.t[op[1]] = t;
+    }
     else if (op[0] === 'h') { J.h[op[1]] = Math.max(0, (J.h[op[1]] || 0) + op[2]); if (!J.h[op[1]]) delete J.h[op[1]]; }
     if (record) { J.log.push(op); if (J.log.length > 200) J.log.shift(); }
     resetAsk = false;
@@ -1307,7 +1335,7 @@ details.jmore summary { cursor: pointer; font-size: 13px; font-weight: 700; colo
     if (act === 'on') { if (J.r[id] > 0) return; jApply(['on', id, !J.on[id]], true); jRefresh(true); return; }
     if (act === 'g') jApply(['g', d], true);
     else if (act === 'r') { if (d < 0 && !(J.r[id] > 0)) return; jApply(['r', id, d], true); syncCnt('r:' + id); }
-    else if (act === 't') { var i = +b.getAttribute('data-i'), t = J.t[id] || [0, 0]; if (d < 0 && !(t[i] > 0)) return; jApply(['t', id, i, d], true); }
+    else if (act === 't') { var i = +b.getAttribute('data-i'), t = J.t[id] || []; if (d < 0 && !(t[i] > 0)) return; jApply(['t', id, i, d], true); }
     else if (act === 'h') { if (d < 0 && !(J.h[id] > 0)) return; jApply(['h', id, d], true); syncCnt(id); }
     jRefresh(true);
   }
