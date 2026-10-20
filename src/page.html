@@ -109,14 +109,26 @@ button { font: inherit; color: inherit; }
   border-bottom: 3px solid var(--edge);
 }
 .hero .gut { padding-block: 14px 16px; display: grid; gap: 12px; }
-.hero-top { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.hero-top { display: flex; align-items: center; justify-content: space-between; gap: 8px 12px; flex-wrap: wrap; }
 .hero-name { min-width: 0; }
 .kicker { font-size: 12px; font-weight: 700; letter-spacing: .14em; opacity: .95; }
-.hero h1 {
-  font-family: var(--font-display); font-weight: 400; margin: 0;
-  font-size: clamp(34px, 10vw, 44px); line-height: 1.1; letter-spacing: .02em;
+.vh { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+/* 機種のプルダウン：大きな機種名をタップすると切り替わる */
+.picker { position: relative; display: block; cursor: pointer; }
+.picker select {
+  appearance: none; -webkit-appearance: none; width: 100%; cursor: pointer;
+  font-family: var(--font-display); font-weight: 400; font-size: clamp(26px, 7.6vw, 38px); line-height: 1.2; letter-spacing: .02em;
+  color: var(--hero-ink); background: transparent; border: 0; border-radius: 12px; padding: 2px 52px 4px 0; margin: 0;
   text-shadow: 0 3px 0 var(--hero-shadow), 2px 0 0 var(--hero-shadow), -2px 0 0 var(--hero-shadow), 0 -2px 0 var(--hero-shadow);
+  text-overflow: ellipsis;
 }
+.picker select option { color: var(--ink); background: var(--surface); font-family: var(--font-body); font-size: 16px; text-shadow: none; }
+.picker-btn {
+  position: absolute; right: 0; top: 50%; transform: translateY(-50%); pointer-events: none;
+  width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--surface); color: var(--ink); border: 2px solid var(--edge); box-shadow: 0 2px 0 var(--edge);
+}
+.picker-btn svg { width: 20px; height: 20px; }
 .fullname { font-size: 12px; font-weight: 700; margin-top: 4px; text-wrap: balance; }
 .hero-btns { display: flex; gap: 8px; }
 .hbtn {
@@ -293,7 +305,7 @@ main.gut { padding-block: 18px calc(110px + env(safe-area-inset-bottom, 0px)); }
 
 /* 設定差の表 */
 .tbl { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-table { border-collapse: collapse; width: 100%; min-width: 560px; font-size: 13.5px; font-variant-numeric: tabular-nums; }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; font-variant-numeric: tabular-nums; }
 th, td { padding: 9px 10px; border-top: 1.5px solid var(--line); text-align: right; white-space: nowrap; }
 th:first-child, td:first-child { text-align: left; position: sticky; left: 0; background: var(--surface); font-weight: 700; }
 thead th { font-size: 12px; color: var(--muted); font-weight: 700; border-top: 0; }
@@ -388,19 +400,24 @@ thead th.s6 { color: var(--pink-deep); }
 <header class="hero">
   <div class="gut">
     <div class="hero-top">
-      <div class="hero-name">
-        <div class="kicker">シサミル ｜ パチスロ示唆の早見帳</div>
-        <h1>青ブタ</h1>
-        <div class="fullname">L青春ブタ野郎はバニーガール先輩の夢を見ない</div>
-      </div>
+      <div class="kicker">シサミル ｜ パチスロ示唆の早見帳</div>
       <div class="hero-btns">
         <button type="button" class="hbtn" id="b-info" aria-expanded="false" aria-controls="p-info">台の情報</button>
         <button type="button" class="hbtn" id="b-legend" aria-expanded="false" aria-controls="p-legend">色の見かた</button>
       </div>
     </div>
+    <div class="hero-name">
+      <h1 class="vh" id="m-title"></h1>
+      <label class="picker">
+        <span class="vh">機種をえらぶ</span>
+        <select id="machine"></select>
+        <span class="picker-btn" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
+      </label>
+      <div class="fullname" id="m-full"></div>
+    </div>
     <div class="search">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg>
-      <input id="q" type="search" autocomplete="off" placeholder="キャラ名・演出名でさがす" aria-label="キャラ名・演出名でさがす">
+      <input id="q" type="search" autocomplete="off" placeholder="この機種の中でさがす（キャラ名・演出名）" aria-label="この機種の中でさがす">
       <button type="button" class="qclear" id="q-clear" hidden>消す</button>
     </div>
   </div>
@@ -414,7 +431,7 @@ thead th.s6 { color: var(--pink-deep); }
     <div class="legend">
       <span class="pill lv-base">デフォルト</span>
       <span class="pill lv-oe">奇数・偶数</span>
-      <span class="pill lv-blue">弱い示唆</span>
+      <span class="pill lv-blue">弱い示唆・設定2以上</span>
       <span class="pill lv-green">強い示唆</span>
       <span class="pill lv-gold">設定3以上</span>
       <span class="pill lv-red">設定4以上</span>
@@ -459,316 +476,42 @@ thead th.s6 { color: var(--pink-deep); }
   </div>
 </dialog>
 
+<script>window.SHISA = { list: [], add: function (m) { this.list.push(m); } };</script>
+<script src="machines/aobuta.js"></script>
+<script src="machines/index2.js"></script>
+<script src="machines/otome5.js"></script>
+<script src="machines/valvrave2.js"></script>
+<script src="machines/valvrave.js"></script>
+<script src="machines/lycoreco.js"></script>
+<script src="machines/sunbreak.js"></script>
+<script src="machines/sao2.js"></script>
+<script src="machines/paripi.js"></script>
+<script src="machines/dims.js"></script>
 <script>
 (function () {
-  var G = 'https://1geki.jp/slot/l_ao_buta/';
-  var C = 'https://chonborista.com/slot/orinpia-slot/261018/';
-  var N = 'https://nana-press.com/kaiseki/machine/1214/';
   var APP_URL = 'https://applicationsvell.github.io/slotlist/';
-
-  var INFO = {
-    spec: [
-      ['メーカー', 'オリンピア（平和）'],
-      ['導入日', '2026年9月7日'],
-      ['設定', 'L・2・3・4・5・6（設定1なし）'],
-      ['初当り', '1/350.8〜1/207.8'],
-      ['まとめた日', '2026年10月20日']
-    ],
-    sources: [
-      ['一撃（1geki）解析ページ', G],
-      ['ちょんぼりすた 青ブタ解析まとめ', C],
-      ['なな徹（nana-press）青ブタ解析まとめ', N],
-      ['ぱちタウン 青ブタ設定差まとめ', 'https://p-town.dmm.com/specials/5420']
-    ]
-  };
-
-  // 一撃から引用した画面写真の縦横（読み込み前に場所を確保するため）
-  var DIM = {"ekishou02":[560,232],"ekishou05":[560,232],"ekishou06":[560,232],"ekishou07":[560,232],"ekishou08":[560,232],"ekishou09":[560,232],"ekishou10":[560,232],"ekishou103":[560,243],"ekishou11":[560,232],"ekishou12":[560,232],"ekishou22":[560,232],"ekishou26":[560,232],"ekishou27":[560,232],"ekishou28":[560,232],"ekishou29":[560,232],"ekishou30":[560,232],"ekishou32":[560,232],"ekishou41":[560,232],"ekishou42":[560,232],"ekishou43":[560,232],"ekishou64":[560,232],"ekishou67":[560,232],"ekishou69":[560,264],"ekishou70":[561,449],"ekishou71":[561,449],"ekishou72":[561,449],"ekishou73":[561,449],"ekishou74":[561,449],"ekishou75":[561,449],"ekishou76":[561,449],"ekishou77":[561,449],"ekishou78":[561,449],"ekishou80":[560,231],"ekishou81":[560,231],"ekishou82":[560,232],"ekishou83":[560,230],"ekishou84":[560,233],"ekishou85":[560,391],"ekishou86":[561,232],"ekishou87":[561,232],"ekishou88":[561,234],"ekishou89":[561,232],"ekishou90":[561,236],"ekishou91":[561,234],"ekishou92":[561,232],"ekishou93":[561,234],"uchikata09":[560,260],"uchikata10":[560,260],"uchikata11":[560,260]};
+  var MACHINES = window.SHISA.list;
+  var DIM = window.SHISA_DIM || {};
 
   var ICON = {
     star: '<path d="M12 3.2l2.6 5.4 5.9.8-4.3 4.1 1 5.9L12 16.6l-5.2 2.8 1-5.9-4.3-4.1 5.9-.8z"/>',
     pic: '<rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3.5 16.5l5-5 4 4 2.5-2.5 5.5 5.5"/><circle cx="16" cy="9.5" r="1.6"/>',
     gem: '<path d="M7 4h10l4 5-9 11L3 9z"/><path d="M3 9h18M9.5 4L8 9l4 11 4-11-1.5-5"/>',
     bolt: '<path d="M13.5 2.5L5 13.5h6l-1.5 8 8.5-11h-6z"/>',
-    seven: '<rect x="3.5" y="3.5" width="17" height="17" rx="4"/><path d="M8.5 8h7l-4 9"/>'
+    seven: '<rect x="3.5" y="3.5" width="17" height="17" rx="4"/><path d="M8.5 8h7l-4 9"/>',
+    crown: '<path d="M3.5 18.5h17l1-11-5.5 4.5-4-7-4 7-5.5-4.5z"/>',
+    eye: '<path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="3"/>',
+    chat: '<path d="M4 5h16v11H9l-5 4z"/>'
   };
-
-  // img: [ファイル名, 一撃ページ内の場所, 写真の説明]
-  var TABS = [
-    { id: 'setting', label: '設定示唆', icon: 'star', groups: [
-      {
-        id: 'end', short: '終了画面', title: 'ST終了画面',
-        where: 'ST「青ブタジャッジ」が終わったときの画面。キャラと一緒に出るスタンプも見る',
-        src: [['一撃', G + '0/#dynamic_header_4'], ['ちょんぼりすた', C + '#ST'], ['なな徹', N + '38882/']],
-        items: [
-          { see: '梓川咲太', res: 'デフォルト', lv: 'base', img: ['ekishou70', '0/#dynamic_header_4', 'ST終了画面：梓川咲太'] },
-          { see: '豊浜のどか', res: '奇数設定を示唆', lv: 'oe', img: ['ekishou71', '0/#dynamic_header_4', 'ST終了画面：豊浜のどか'] },
-          { see: '古賀朋絵', res: '偶数設定を示唆', lv: 'oe', img: ['ekishou72', '0/#dynamic_header_4', 'ST終了画面：古賀朋絵'] },
-          { see: '双葉理央', res: '高設定示唆（弱）', lv: 'blue', img: ['ekishou73', '0/#dynamic_header_4', 'ST終了画面：双葉理央'] },
-          { see: '桜島麻衣', res: '高設定示唆（強）', lv: 'green', img: ['ekishou74', '0/#dynamic_header_4', 'ST終了画面：桜島麻衣'] },
-          { see: '梓川かえで', sub: '吉スタンプ', res: '設定3以上濃厚', lv: 'gold', img: ['ekishou75', '0/#dynamic_header_4', 'ST終了画面：梓川かえで'] },
-          { see: '牧之原翔子', sub: '良スタンプ', res: '設定4以上濃厚', lv: 'red', img: ['ekishou76', '0/#dynamic_header_4', 'ST終了画面：牧之原翔子'] },
-          { see: '桜島麻衣（バニー）', sub: '優スタンプ', res: '設定5以上濃厚', lv: 'purple', img: ['ekishou77', '0/#dynamic_header_4', 'ST終了画面：桜島麻衣（バニー）'] },
-          { see: 'ヒロイン全員集合', sub: '極スタンプ', res: '設定6濃厚', lv: 'rain', img: ['ekishou78', '0/#dynamic_header_4', 'ST終了画面：ヒロイン全員集合'] }
-        ],
-        imgsAfter: [['ekishou64', '0/#dynamic_header_4', 'スタンプの出かた（例：優スタンプ）']],
-        note: [
-          'スタンプは平和・オリンピア機でおなじみの並び（吉 → 良 → 優 → 極）。',
-          'のどか・朋絵・理央・麻衣の4種は、なな徹と一撃は示唆ありとしていますが、ちょんぼりすたでは調査中の扱いです。'
-        ]
-      },
-      {
-        id: 'coins', short: '枚数表示', title: '獲得枚数表示',
-        where: 'AT中に出る獲得枚数の表示',
-        src: [['一撃', G + '0/#dynamic_header_7'], ['なな徹', N + '38855/']],
-        items: [
-          { see: '456枚', res: '設定4以上', lv: 'red', img: ['ekishou80', '0/#dynamic_header_7', '456枚表示'] },
-          { see: '555枚', res: '設定5以上', lv: 'purple', img: ['ekishou81', '0/#dynamic_header_7', '555枚表示'] },
-          { see: '821枚', sub: 'バニーの語呂', res: '設定5以上', lv: 'purple', img: ['ekishou83', '0/#dynamic_header_7', '821枚表示'] },
-          { see: '666枚', res: '設定6', lv: 'rain', img: ['ekishou82', '0/#dynamic_header_7', '666枚表示'] }
-        ]
-      },
-      {
-        id: 'haruluna', short: 'ハルルナ', title: 'ハルルナPUSH',
-        where: 'ST「青ブタジャッジ」のヒロインチャレンジ中',
-        src: [['一撃', G + '0/#dynamic_header_8'], ['なな徹', N + '38855/']],
-        items: [
-          { see: 'ハルルナPUSHが出現', res: '設定4以上濃厚', lv: 'red', img: ['ekishou84', '0/#dynamic_header_8', 'ハルルナPUSH'] }
-        ]
-      },
-      {
-        id: 'nagi', short: '隠れ凪', title: '隠れ凪（打-WIN LITE）',
-        where: '打-WIN LITEでQRを読むと出るセリフ。1000Gごとに変わる',
-        src: [['一撃', G + '0/#dynamic_header_9'], ['ちょんぼりすた', C + '#index-18']],
-        items: [
-          { see: '「また遊んでくださいね」', sub: '白文字', res: 'デフォルト', lv: 'base', tag: '推測' },
-          { see: '「一味違いますね」', sub: 'ちょんぼりすたのみ掲載', res: '設定2以上（L否定）', lv: 'blue', tag: '推測' },
-          { see: '「何やら不思議な気配です」', sub: '緑文字', res: '設定3以上', lv: 'gold', tag: '推測', img: ['ekishou85', '0/#dynamic_header_9', '隠れ凪：緑文字'] },
-          { see: '「良い予感がします」', sub: '赤文字', res: '設定4以上', lv: 'red', tag: '推測' },
-          { see: '「遊び尽くしちゃいましょう」', sub: '銀文字', res: '設定5以上', lv: 'purple', tag: '推測' },
-          { see: '「お肉〜お肉〜」', sub: '金文字', res: '設定6', lv: 'rain', tag: '推測' }
-        ],
-        note: [
-          '本機ではまだ確認されておらず、同じメーカーの他機種の法則を当てはめた予想です。',
-          '本機は設定1がなく設定Lがあるので、中身が違う可能性があります。'
-        ]
-      },
-      {
-        id: 'num', short: '設定差', title: '設定差のある数値',
-        where: '設定Lの数値は公表されていません。表は横にスクロールできます',
-        src: [['一撃', G + '0/'], ['ちょんぼりすた', C + '#index-17']],
-        table: {
-          head: ['項目', '設定2', '設定3', '設定4', '設定5', '設定6'],
-          rows: [
-            ['初当り', '1/350.8', '1/336.5', '1/295.1', '1/274.6', '1/207.8'],
-            ['機械割', '98.1%', '99.3%', '105.3%', '108.4%', '110.3%'],
-            ['アオハルチャンス', '1/63.7', '1/62.4', '1/59.4', '1/58.6', '1/57.2'],
-            ['300ptでCZ以上', '約30%', '約34%', '40%以上', '40%以上', '40%以上'],
-            ['400ptで前兆移行', '1.0%', '1.0%', '1.2%', '1.3%', '2.8%'],
-            ['500ptでCZ以上', '約25%', '約27%', '33%以上', '33%以上', '33%以上'],
-            ['咲太クエスト（スイカ）', '1/15,274', '1/6,634', '1/6,726', '1/6,558', '1/6,204'],
-            ['咲太ポイント解放', '1/12,388', '1/12,163', '1/12,210', '1/11,518', '1/8,349']
-          ]
-        },
-        note: ['設定6は初当りが別格に軽いのが一番の特徴です。']
-      }
-    ]},
-    { id: 'normal', label: '通常時', icon: 'pic', groups: [
-      {
-        id: 'stage', short: 'ステージ', title: '通常時のステージ',
-        where: '通常時の液晶の背景',
-        src: [['一撃', G + '41/#dynamic_header_2'], ['ちょんぼりすた', C + '#index-30'], ['なな徹', N + '38859/']],
-        items: [
-          { see: '梓川家', res: '通常', lv: 'info', img: ['ekishou05', '41/#dynamic_header_2', '梓川家ステージ'] },
-          { see: '通学路', res: '通常', lv: 'info', img: ['ekishou06', '41/#dynamic_header_2', '通学路ステージ'] },
-          { see: 'ファミレス', sub: 'CZ・ST終了後は40.2%で高確スタート', res: 'アオハルチャンス高確を示唆', lv: 'hot', img: ['ekishou07', '41/#dynamic_header_2', 'ファミレスステージ'] },
-          { see: '七里ヶ浜', res: 'CZのチャンス。規定ポイントのゾーン期待度アップ', lv: 'hot', img: ['ekishou08', '41/#dynamic_header_2', '七里ヶ浜ステージ'] },
-          { see: 'リラックス', sub: '10G＋α滞在。スイカの一部、300ptゾーンの前兆失敗後（25%）などで移行', res: '思春期ポイント獲得量アップ＋アオハル高確', lv: 'hot', img: ['ekishou10', '41/#dynamic_header_2', 'リラックスステージ'] },
-          { see: '彷徨の刻', res: '規定ポイント到達で移る前兆ステージ。連続演出でCZの当否を告知', lv: 'hot', img: ['ekishou09', '41/#dynamic_header_2', '彷徨の刻ステージ'] }
-        ],
-        note: ['ST後に背景がファミレスなら通常背景に戻るまで様子見、デフォルト背景ならやめどきの目安になります。']
-      },
-      {
-        id: 'hoko', short: '彷徨の刻', title: '彷徨の刻（前兆ステージ）',
-        where: '規定ポイント到達後の前兆中',
-        src: [['なな徹', N + '38871/'], ['ちょんぼりすた', C + '#index-31']],
-        items: [
-          { see: '液晶まわりのエフェクト', sub: '青・緑', res: '前兆開始の合図', lv: 'info' },
-          { see: '連続演出「姉妹の入れ替わりを看破しろ」', res: '期待度 ☆×2.5', lv: 'info' },
-          { see: '連続演出「双葉理央を捕まえろ」', res: '期待度 ☆×3', lv: 'info' },
-          { see: '連続演出「桜島麻衣を探し出せ」', res: '期待度 ☆×3.5', lv: 'hot' }
-        ],
-        note: ['連続演出に成功するとCZ「エピソードチャンス」。上の3つ以外の連続演出もあります（なな徹）。']
-      },
-      {
-        id: 'eye', short: 'アイキャッチ', title: 'ステージチェンジのアイキャッチ',
-        where: '通常時のステージ移行で出る1枚絵（全8種）',
-        src: [['一撃', G + '41/#dynamic_header_3']],
-        view: 'grid',
-        items: [
-          { see: '梓川咲太', sub: 'よく出る', res: '基本パターンとみられる', lv: 'info', tag: '推測', img: ['ekishou86', '41/#dynamic_header_3', 'アイキャッチ：梓川咲太'] },
-          { see: '古賀朋絵', res: '示唆内容は不明', lv: 'info', tag: '調査中', img: ['ekishou88', '41/#dynamic_header_3', 'アイキャッチ：古賀朋絵'] },
-          { see: '豊浜のどか', res: '示唆内容は不明', lv: 'info', tag: '調査中', img: ['ekishou90', '41/#dynamic_header_3', 'アイキャッチ：豊浜のどか'] },
-          { see: '双葉理央', res: '示唆内容は不明', lv: 'info', tag: '調査中', img: ['ekishou89', '41/#dynamic_header_3', 'アイキャッチ：双葉理央'] },
-          { see: '桜島麻衣', res: '示唆内容は不明', lv: 'info', tag: '調査中', img: ['ekishou87', '41/#dynamic_header_3', 'アイキャッチ：桜島麻衣'] },
-          { see: '梓川かえで', res: '示唆内容は不明', lv: 'info', tag: '調査中', img: ['ekishou91', '41/#dynamic_header_3', 'アイキャッチ：梓川かえで'] },
-          { see: '牧之原翔子', res: '示唆内容は不明', lv: 'info', tag: '調査中', img: ['ekishou92', '41/#dynamic_header_3', 'アイキャッチ：牧之原翔子'] },
-          { see: 'ヒロイン集合', sub: 'この後に「復活」したパターンを確認', res: '示唆内容は不明', lv: 'info', tag: '調査中', img: ['ekishou93', '41/#dynamic_header_3', 'アイキャッチ：ヒロイン集合'] }
-        ],
-        note: [
-          '2026年10月20日の時点で、どのサイトも示唆の中身を出していません。',
-          '一撃は、咲太以外のヒロインは不可思議モードや次回CZのキャラを示している可能性があると見ています。'
-        ]
-      }
-    ]},
-    { id: 'zone', label: 'ゾーン', icon: 'gem', groups: [
-      {
-        id: 'crystal', short: 'クリスタル', title: '不可思議モード（クリスタルのキャラ）',
-        where: 'リール左のクリスタルに出るキャラ。前兆後・CZ後・AT後などに出る',
-        src: [['一撃', G + '55/#dynamic_header_2'], ['ちょんぼりすた', C + '#index-27']],
-        imgs: [['ekishou32', '55/#dynamic_header_2', 'クリスタルのキャラ一覧']],
-        items: [
-          { see: '古賀朋絵', res: '次回の規定ポイントが100ptに短縮', lv: 'hot' },
-          { see: '豊浜のどか', res: 'アオハルチャンスの報酬が優遇', lv: 'info' },
-          { see: '双葉理央', res: '常に高確以上（アオハルチャンス高確）', lv: 'info' },
-          { see: '桜島麻衣', res: '今の規定ポイントが300ptか500pt', lv: 'hot', img: ['ekishou67', '55/#dynamic_header_1', 'クリスタル：桜島麻衣'] },
-          { see: '梓川かえで', res: '次回CZにかえでが出る（CZ期待度 約86%）', lv: 'hot' },
-          { see: '牧之原翔子', res: '次回CZに翔子が出る（成功で上位CZ）', lv: 'hot' },
-          { see: 'クリスタル全体が紫に光る', sub: '台を捨てないこと', res: '次のST開始時に思春期症候群が発動', lv: 'hot', tag: '実戦上' }
-        ],
-        note: ['麻衣について、アルテマは「規定ポイントが500pt以内」と書いています。']
-      },
-      {
-        id: 'point', short: '思春期pt', title: '思春期ポイントのゾーン',
-        where: '液晶左下の思春期ポイント。100ptごとにCZ抽選',
-        src: [['一撃', G + '43/#dynamic_header_2'], ['ちょんぼりすた', C + '#index-26']],
-        imgs: [['ekishou11', '43/#dynamic_header_1', '思春期ポイントの位置（液晶左下）']],
-        items: [
-          { see: 'ポイント表示がピンクに変わる', res: '規定ポイント到達の合図', lv: 'hot', tag: '実戦上', img: ['ekishou12', '43/#dynamic_header_1', '思春期ポイントがピンクに変化'] }
-        ],
-        chart: {
-          cap: 'バーの長さ＝CZ以上の当選期待度（0〜100%）。薄い部分は高設定（4〜6）の上乗せ分',
-          rows: [
-            { k: '100pt', v: 33, txt: '約33%', m: '全設定共通。いちばん狙いやすい' },
-            { k: '200pt', v: 15, txt: '約15%' },
-            { k: '300pt', v: 30, ext: 40, txt: '約30%〜40%以上', m: '設定差あり（設定2で約30%、設定3で約34%、4以上で40%以上）' },
-            { k: '400pt', flag: '前兆ステージに移ればCZ以上濃厚', m: '前兆移行率は1.0%〜2.8%で設定差あり' },
-            { k: '500pt', v: 25, ext: 33, txt: '約25%〜33%以上', m: '設定差あり（設定2で約25%、設定3で約27%、4以上で33%以上）' },
-            { k: '600pt', flag: '前兆ステージに移ればCZ以上濃厚' },
-            { k: '700pt', v: 25, txt: '約25%' },
-            { k: '800pt', flag: '前兆ステージに移ればCZ以上濃厚' },
-            { k: '900pt', v: 25, txt: '約25%' },
-            { k: '1000pt', v: 100, txt: '天井でCZ以上確定' }
-          ]
-        },
-        note: ['CZに失敗したときやST後も、余ったポイントは持ち越されます。']
-      },
-      {
-        id: 'kaede', short: 'かえでスタンプ', title: 'かえでスタンプ',
-        where: 'リプレイの約40%で1個。7個たまるとアオハルチャンス',
-        src: [['なな徹', N + '38862/'], ['ちょんぼりすた', C + '#index-28']],
-        items: [
-          { see: '7個目「さすがです！」', sub: '青', res: 'アオハルチャンスの報酬を示唆', lv: 'info', tag: '調査中' },
-          { see: '7個目「すごいです！」', sub: 'ピンク', res: 'アオハルチャンスの報酬を示唆', lv: 'info', tag: '調査中' },
-          { see: '7個目「すばらしいです！」', sub: '赤', res: 'アオハルチャンスの報酬を示唆', lv: 'info', tag: '調査中' }
-        ],
-        note: ['色ごとの具体的な中身はまだ出ていません。']
-      },
-      {
-        id: 'sakuta', short: '咲太pt', title: '咲太ポイント（穢れ）',
-        where: '内部でたまるポイント。エフェクトで量を示唆',
-        src: [['ちょんぼりすた', C + '#index-32'], ['一撃', G + '57/']],
-        items: [
-          { see: '獲得時のエフェクト', sub: '小・中・大', res: '今回の獲得量を示唆', lv: 'info' },
-          { see: '蓄積のエフェクト', sub: '小・中・大', res: '内部にたまった合計量を示唆', lv: 'info' },
-          { see: 'CZ開始時に虹イルミ', res: 'ポイントMAX。CZ成功濃厚＋ST開始時に思春期症候群', lv: 'hot' }
-        ]
-      }
-    ]},
-    { id: 'cz', label: 'CZ', icon: 'bolt', groups: [
-      {
-        id: 'czheroine', short: 'ヒロイン別', title: 'CZヒロイン別の期待度',
-        where: 'CZ「エピソードチャンス」開始時に選ばれるヒロイン（期待度は設定2の数値）',
-        src: [['一撃', G + '53/#dynamic_header_3'], ['ちょんぼりすた', C + '#CZ-2']],
-        stats: [
-          { k: '古賀朋絵', v: 56.7, m: '振り分け25.4%・スイカで成功濃厚', img: ['ekishou27', '53/#dynamic_header_5', 'エピソードチャンス：古賀朋絵'] },
-          { k: '豊浜のどか', v: 61.5, m: '振り分け25.4%・ベルがチャンス役', img: ['ekishou26', '53/#dynamic_header_8', 'エピソードチャンス：豊浜のどか'] },
-          { k: '双葉理央', v: 62.0, m: '振り分け21.9%・チェリーで成功濃厚', img: ['ekishou28', '53/#dynamic_header_11', 'エピソードチャンス：双葉理央'] },
-          { k: '桜島麻衣', v: 63.7, m: '振り分け21.9%・リプレイが大チャンス、チャンス目で濃厚', img: ['ekishou22', '53/#dynamic_header_14', 'エピソードチャンス：桜島麻衣'] },
-          { k: '梓川かえで', v: 86.3, m: '振り分け4.7%・全役で優遇、レア役で濃厚', img: ['ekishou29', '53/#dynamic_header_17', 'エピソードチャンス：梓川かえで'] },
-          { k: '牧之原翔子', v: 67.1, ext: 86.4, extTxt: '確定版込みで86.4%', m: '振り分け0.8%・レア役で濃厚、成功で上位CZ', img: ['ekishou30', '53/#dynamic_header_20', 'エピソードチャンス：牧之原翔子'] }
-        ],
-        note: ['CZ全体の成功期待度は62.5%（設定2）。後半の最終ゲームは専用の成功抽選があり、小役での成功率は設定4以上で優遇されます。']
-      },
-      {
-        id: 'czfx', short: 'CZ中の演出', title: 'CZ中の演出',
-        where: 'エピソードチャンス中（前半10G＋後半6G＋α）',
-        src: [['一撃', G + '53/'], ['ちょんぼりすた', C + '#CZ-2']],
-        items: [
-          { see: '前半で後半のG数が＋5Gに到達', res: '成功濃厚', lv: 'hot' },
-          { see: '後半のカウントが緑', res: 'チャンス', lv: 'info' },
-          { see: '後半のカウントが赤', res: '大チャンス', lv: 'hot' },
-          { see: 'フリーズ発生', res: '成功（ボーナス濃厚）', lv: 'hot' },
-          { see: 'CZ開始時に虹イルミ', res: '成功濃厚（咲太ポイントMAX）', lv: 'hot' },
-          { see: '観測目', res: '成功濃厚＋STを1セット上乗せ', lv: 'hot' },
-          { see: 'CZ6回スルー後の7回目', res: '成功濃厚（スルー天井）', lv: 'hot' }
-        ]
-      }
-    ]},
-    { id: 'st', label: 'ST', icon: 'seven', groups: [
-      {
-        id: 'judge', short: 'ジャッジ', title: 'ジャッジ演出',
-        where: 'ST「青ブタジャッジ」。1G目で演出が決まり、2G目でジャッジ',
-        src: [['一撃', G + '81/#dynamic_header_3'], ['ちょんぼりすた', C + '#STJUDGE']],
-        items: [
-          { see: 'ヒロインチャレンジ', sub: 'その他の小役から', res: '期待度 約10%', lv: 'info', img: ['ekishou41', '81/#dynamic_header_3', 'ヒロインチャレンジ'] },
-          { see: 'PUSHチャレンジ', sub: 'ベルから', res: '期待度 約22%', lv: 'info', img: ['ekishou42', '81/#dynamic_header_3', 'PUSHチャレンジ'] },
-          { see: '7チャレンジ', sub: 'リプレイ・レア役から', res: '期待度 約40%', lv: 'info', img: ['ekishou43', '81/#dynamic_header_3', '7チャレンジ'] },
-          { see: '7チャレンジのカットイン青', res: '期待度 約33%', lv: 'info' },
-          { see: '7チャレンジのカットイン赤', res: '期待度 約98〜99%', lv: 'hot' },
-          { see: '7チャレンジのカットイン虹', res: 'ボーナス濃厚', lv: 'hot' },
-          { see: '演出と成立役が合わない', sub: '上の組み合わせと矛盾', res: 'チャンス', lv: 'hot' },
-          { see: '液晶下の「V」が2個以上', res: 'ヒロイン配置に翔子が出る（成功で上位CZ）', lv: 'info', img: ['ekishou69', '81/#dynamic_header_4', 'ST中のヒロイン決定ゾーン'] }
-        ],
-        note: ['期待度は設定2の数値。バニーモードは演出の種類が見えない一発告知型です。']
-      },
-      {
-        id: 'lamp', short: '裏ボタン', title: '裏ボタン・ランプ',
-        where: 'PUSHボタンを押すと筐体上部のランプで教えてくれる',
-        src: [['ちょんぼりすた', C + '#index-36'], ['一撃', G + '81/#dynamic_header_13']],
-        items: [
-          { see: '青春ジャッジメント・夢現ジャッジメント・バニーモードのレバーフリーズ中にPUSH連打', sub: '規定回数は1〜10回（5回と10回が多い）', res: '上部ランプ点灯で成功（成功時の50%で点灯）', lv: 'hot', img: ['ekishou103', '81/#dynamic_header_13', 'ST中のバニーモード'] },
-          { see: 'のどかのドリームバースト、点数昇格の煽り中にPUSH', res: '点灯で昇格が続く', lv: 'hot' },
-          { see: '理央のドリームバースト、報酬の煽り中にPUSH', res: '点灯で右の報酬を獲得', lv: 'hot' },
-          { see: '7揃い後1G目、第3停止後にPUSH：ランプ青', sub: '理央のバースト以外', res: 'セブンレベルがいちばん低い', lv: 'info' },
-          { see: '同上：ランプ緑', res: '青より上', lv: 'info' },
-          { see: '同上：ランプ赤', res: 'セブンレベル2以上', lv: 'hot' },
-          { see: '同上：ランプ紫', res: 'セブンレベル3（最上位）', lv: 'hot' }
-        ],
-        note: ['セブンレベルが高いほどドリームバーストの上乗せ枚数に期待できます。']
-      },
-      {
-        id: 'kansoku', short: '観測目・フリーズ', title: '観測目・ロングフリーズ',
-        where: 'BAR揃いの「観測目」とフリーズ',
-        src: [['一撃', G + '5/'], ['ちょんぼりすた', C + '#index-9']],
-        imgs: [['uchikata09', '5/#dynamic_header_2', '観測目（1）'], ['uchikata10', '5/#dynamic_header_2', '観測目（2）'], ['uchikata11', '5/#dynamic_header_2', '観測目（3）']],
-        items: [
-          { see: '通常時の観測目', sub: '約1/50,840', res: 'CZ直撃（成功濃厚の翔子）、25%でロングフリーズ', lv: 'hot' },
-          { see: 'ロングフリーズ', sub: '約1/203,360', res: 'エピソードボーナス300枚＋上位ST直行', lv: 'hot', img: ['ekishou02', '5/#dynamic_header_1', 'ロングフリーズ'] },
-          { see: 'ST中の観測目', res: '超青春ドリームバースト（白7）濃厚', lv: 'hot' },
-          { see: 'ドリームバースト中の観測目', res: '＋1000枚以上（翔子なら＋2000枚以上）', lv: 'hot' }
-        ]
-      }
-    ]}
-  ];
-
-  // 前のURL（#set など）で開いても近い項目に飛べるように
-  var OLD = { set: 'coins', zone: 'crystal', cz: 'czheroine', st: 'judge' };
   var PILL = { base: 1, oe: 1, blue: 1, green: 1, gold: 1, red: 1, purple: 1, rain: 1 };
 
-  var FLAT = [];
-  TABS.forEach(function (t) { t.groups.forEach(function (g) { g.tab = t; FLAT.push(g); }); });
-  function byId(id) { return FLAT.filter(function (g) { return g.id === id; })[0]; }
+  MACHINES.forEach(function (m) {
+    m.flat = [];
+    m.tabs.forEach(function (t) { t.groups.forEach(function (g) { g.tab = t; m.flat.push(g); }); });
+  });
+  function machineById(id) { return MACHINES.filter(function (m) { return m.id === id; })[0]; }
+  function groupById(m, id) { return m.flat.filter(function (g) { return g.id === id; })[0]; }
+  function link(u) { return /^https?:/.test(u) ? u : M.g + u; }
 
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
@@ -780,17 +523,21 @@ thead th.s6 { color: var(--pink-deep); }
       return String.fromCharCode(c.charCodeAt(0) - 0x60);
     }).replace(/\s+/g, '');
   }
-  function isTall(im) { var d = DIM[im[0]] || [560, 232]; return d[0] / d[1] < 1.6; }
+
+  var M = null;
+  function dim(im) { return DIM[M.id + '/' + im[0]] || [560, 232]; }
+  function isTall(im) { var d = dim(im); return d[0] / d[1] < 1.6; }
+  function imgFile(id, name) { return 'img/' + id + '/' + name + '.webp'; }
 
   function zoomHTML(im, res, lv) {
-    var d = DIM[im[0]] || [560, 232];
-    var file = 'img/' + im[0] + '.webp';
-    return '<button type="button" class="zoom" data-img="' + esc(file) + '" data-src="' + esc(G + im[1]) + '" data-cap="' + esc(im[2]) + '"' +
+    var d = dim(im);
+    var file = imgFile(M.id, im[0]);
+    return '<button type="button" class="zoom" data-img="' + esc(file) + '" data-src="' + esc(link(im[1])) + '" data-cap="' + esc(im[2]) + '"' +
       (res ? ' data-res="' + esc(res) + '" data-lv="' + esc(lv || '') + '"' : '') + ' aria-label="' + esc(im[2] + 'を大きく見る') + '">' +
       '<img src="' + esc(file) + '" alt="' + esc(im[2]) + '" width="' + d[0] + '" height="' + d[1] + '" loading="lazy" decoding="async"></button>';
   }
   function creditHTML(im) {
-    return '<a class="credit" href="' + esc(G + im[1]) + '" target="_blank" rel="noopener">出典：一撃 ↗</a>';
+    return '<a class="credit" href="' + esc(link(im[1])) + '" target="_blank" rel="noopener">出典：一撃 ↗</a>';
   }
   function resHTML(res, lv) {
     if (PILL[lv]) return '<span class="pill lv-' + lv + '">' + esc(res) + '</span>';
@@ -821,6 +568,11 @@ thead th.s6 { color: var(--pink-deep); }
     if (list.length === 1) return '<div class="single">' + figHTML(list[0]) + '</div>';
     return '<div class="carousel" aria-label="写真（横にスワイプ）">' + list.map(figHTML).join('') + '</div>';
   }
+  function trackHTML(r, label) {
+    return '<div class="track" role="img" aria-label="' + esc(label) + '">' +
+      (r.ext ? '<span class="ext" style="width:' + r.ext + '%"></span>' : '') +
+      '<span class="fill" style="width:' + r.v + '%"></span></div>';
+  }
   function barHTML(r) {
     var body;
     if (r.flag) {
@@ -830,31 +582,29 @@ thead th.s6 { color: var(--pink-deep); }
     }
     return '<div class="brow"><div class="blabel">' + esc(r.k) + '</div><div class="bbody">' + body + '</div></div>';
   }
-  function trackHTML(r, label) {
-    return '<div class="track" role="img" aria-label="' + esc(label) + '">' +
-      (r.ext ? '<span class="ext" style="width:' + r.ext + '%"></span>' : '') +
-      '<span class="fill" style="width:' + r.v + '%"></span></div>';
-  }
   function statHTML(r) {
     var pct = r.v.toFixed(1) + '%';
-    return '<article class="card stat">' + zoomHTML(r.img, 'CZ成功期待度 ' + pct + (r.extTxt ? '（' + r.extTxt + '）' : ''), 'hot') +
+    return '<article class="card stat">' + zoomHTML(r.img, (r.label || '期待度') + ' ' + pct + (r.extTxt ? '（' + r.extTxt + '）' : ''), 'hot') +
       '<div class="cbody"><div class="see">' + esc(r.k) + '</div>' +
       '<div class="big">' + esc(pct) + (r.extTxt ? '<small>' + esc(r.extTxt) + '</small>' : '') + '</div>' +
       trackHTML(r, r.k + ' ' + pct) +
       '<div class="sub" style="margin-top:0">' + esc(r.m) + '</div>' + creditHTML(r.img) + '</div></article>';
   }
+  // 表：最後の列が「設定6」なら色をつける
   function tableHTML(t, rows) {
-    var h = '<div class="list"><div class="tbl"><table><thead><tr>';
-    t.head.forEach(function (c, i) { h += '<th' + (i === 5 ? ' class="s6"' : '') + ' scope="col">' + esc(c) + '</th>'; });
+    var last = t.head.length - 1;
+    var hi = t.hi != null ? t.hi : (/6/.test(t.head[last]) ? last : -1);
+    var h = '<div class="list"><div class="tbl"><table style="min-width:' + (t.head.length > 4 ? t.head.length * 92 : 0) + 'px"><thead><tr>';
+    t.head.forEach(function (c, i) { h += '<th' + (i === hi ? ' class="s6"' : '') + ' scope="col">' + esc(c) + '</th>'; });
     h += '</tr></thead><tbody>';
     rows.forEach(function (r) {
       h += '<tr>';
       r.forEach(function (c, i) {
-        h += i === 0 ? '<th scope="row">' + esc(c) + '</th>' : '<td' + (i === 5 ? ' class="s6"' : '') + '>' + esc(c) + '</td>';
+        h += i === 0 ? '<th scope="row">' + esc(c) + '</th>' : '<td' + (i === hi ? ' class="s6"' : '') + '>' + esc(c) + '</td>';
       });
       h += '</tr>';
     });
-    return h + '</tbody></table></div></div>';
+    return h + '</tbody></table></div>' + (t.cap ? '<div class="cap">' + esc(t.cap) + '</div>' : '') + '</div>';
   }
   function cols(n, tall, wide) {
     if (wide) return n >= 2 ? 2 : 1;
@@ -862,10 +612,10 @@ thead th.s6 { color: var(--pink-deep); }
     if (!tall && n % 4 === 0) return 4;
     return 3;
   }
-
   function hasShots(g) {
     return !!(g.imgs || g.imgsAfter || g.stats || (g.items || []).some(function (it) { return it.img; }));
   }
+  var LOUPE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5 5"/></svg>';
 
   // keep: 検索中だけ渡す。当てはまる行だけ残す
   function groupHTML(g, keep) {
@@ -876,18 +626,19 @@ thead th.s6 { color: var(--pink-deep); }
     var stats = (g.stats || []).filter(function (r) { return ok(norm([r.k, r.m, r.extTxt].join(' '))); });
     var trows = g.table ? g.table.rows.filter(function (r) { return ok(norm(r.join(' '))); }) : [];
     var n = items.length + chart.length + stats.length + trows.length;
-    if (!n) return { html: '', n: 0 };
+    if (!n && !(all && (g.imgs || g.imgsAfter))) return { html: '', n: 0 };
 
     var h = '<section class="group" aria-labelledby="h-' + g.id + '"><div class="ghead">' +
       (keep ? '<div class="gkicker">' + esc(g.tab.label) + '</div>' : '') +
       '<h2 id="h-' + g.id + '">' + esc(g.title) + '</h2>' +
       (g.where ? '<div class="where">' + esc(g.where) + '</div>' : '') +
-      '<div class="src"><span class="src-label">出典</span>' + g.src.map(function (s) {
-        return '<a href="' + esc(s[1]) + '" target="_blank" rel="noopener">' + esc(s[0]) + '</a>';
-      }).join('') + '</div>' + (hasShots(g) ? '<div class="hint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5 5"/></svg>写真をタップすると大きく見られます</div>' : '') + '</div><div class="stack">';
+      '<div class="src"><span class="src-label">出典</span>' + (g.src || [['一撃', M.g]]).map(function (s) {
+        return '<a href="' + esc(link(s[1])) + '" target="_blank" rel="noopener">' + esc(s[0]) + '</a>';
+      }).join('') + '</div>' +
+      (hasShots(g) ? '<div class="hint">' + LOUPE + '写真をタップすると大きく見られます</div>' : '') +
+      '</div><div class="stack">';
 
     if (g.imgs && all) h += figsHTML(g.imgs);
-
     if (items.length) {
       var allImg = items.every(function (it) { return it.img; });
       if (allImg) {
@@ -910,7 +661,7 @@ thead th.s6 { color: var(--pink-deep); }
     if (g.note && g.note.length && !keep) {
       h += '<div class="memo"><b>メモ</b>' + g.note.map(function (p) { return '<p>' + esc(p) + '</p>'; }).join('') + '</div>';
     }
-    return { html: h + '</div></section>', n: n };
+    return { html: h + '</div></section>', n: n || 1 };
   }
 
   var viewEl = document.getElementById('view');
@@ -918,26 +669,68 @@ thead th.s6 { color: var(--pink-deep); }
   var tabsEl = document.getElementById('tabs');
   var qEl = document.getElementById('q');
   var qClear = document.getElementById('q-clear');
+  var selEl = document.getElementById('machine');
   var current = null;
   var lastInTab = {};
 
-  tabsEl.innerHTML = TABS.map(function (t) {
-    return '<button type="button" class="tab" data-tab="' + t.id + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">' +
-      ICON[t.icon] + '</svg>' + esc(t.label) + '</button>';
-  }).join('');
+  function store(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  function recall(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
 
-  function remember(id) { try { localStorage.setItem('shisa.aobuta.view', id); } catch (e) {} }
-  function recalled() { try { return localStorage.getItem('shisa.aobuta.view'); } catch (e) { return null; } }
+  selEl.innerHTML = MACHINES.map(function (m) { return '<option value="' + esc(m.id) + '">' + esc(m.short) + '</option>'; }).join('');
+
+  // アプリ版：開いた機種の写真を先に保存して、電波がなくても見られるようにする
+  function prefetch(m) {
+    if (!window.APP_MODE || !('caches' in window)) return;
+    var list = [];
+    function add(im) { if (im) list.push(imgFile(m.id, im[0])); }
+    m.flat.forEach(function (g) {
+      (g.items || []).forEach(function (it) { add(it.img); });
+      (g.stats || []).forEach(function (r) { add(r.img); });
+      (g.imgs || []).concat(g.imgsAfter || []).forEach(add);
+    });
+    setTimeout(function () {
+      caches.open('shisa-img').then(function (c) {
+        list.forEach(function (u) { c.match(u).then(function (hit) { if (!hit) c.add(u).catch(function () {}); }); });
+      }).catch(function () {});
+    }, 1200);
+  }
+
+  function setMachine(m) {
+    if (M === m) return;
+    M = m;
+    selEl.value = m.id;
+    document.getElementById('m-title').textContent = m.short;
+    document.getElementById('m-full').textContent = m.full;
+    tabsEl.style.gridTemplateColumns = 'repeat(' + m.tabs.length + ', minmax(0, 1fr))';
+    tabsEl.innerHTML = m.tabs.map(function (t) {
+      return '<button type="button" class="tab" data-tab="' + t.id + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">' +
+        (ICON[t.icon] || ICON.star) + '</svg>' + esc(t.label) + '</button>';
+    }).join('');
+    document.getElementById('p-info').innerHTML =
+      '<h2>' + esc(m.full) + '</h2><dl class="spec">' + m.spec.map(function (p) {
+        return '<div><dt>' + esc(p[0]) + '</dt><dd>' + esc(p[1]) + '</dd></div>';
+      }).join('') + '</dl>' +
+      '<div><h2>出典</h2><ul>' + m.sources.map(function (s) {
+        return '<li><a href="' + esc(s[1]) + '" target="_blank" rel="noopener">' + esc(s[0]) + '</a></li>';
+      }).join('') + '</ul></div>' +
+      (window.APP_MODE
+        ? '<p class="small">ホーム画面アプリ版です。開いた機種の写真は端末に保存されるので、電波が弱いホールの中でも見られます。新しい内容は、電波があるときに開き直すと入ります。</p>'
+        : '<div><h2>ホーム画面アプリ版</h2><p><a href="' + APP_URL + '" target="_blank" rel="noopener">' + APP_URL + '</a></p><p class="small">iPhoneはSafariで開いて「共有」→「ホーム画面に追加」。一度開けば電波がなくても見られます。</p></div>') +
+      '<p class="small">画面写真は一撃の解析ページから、出典リンクを付けて引用しています。ほかのサイトはリンクのみです。示唆の中身と数値は各サイトの解析・実戦報告を要約したもので、新しい情報が出ると変わることがあります。</p>';
+    store('shisa.machine', m.id);
+    prefetch(m);
+  }
 
   function scrollToContent() {
     var top = viewEl.getBoundingClientRect().top + window.pageYOffset - document.querySelector('.subbar').offsetHeight - 4;
     if (window.pageYOffset > top) window.scrollTo(0, top);
   }
 
-  function show(id, fromUser) {
-    var g = byId(id) || FLAT[0];
+  function show(mid, gid, fromUser) {
+    setMachine(machineById(mid) || MACHINES[0]);
+    var g = groupById(M, gid) || M.flat[0];
     current = g;
-    lastInTab[g.tab.id] = g.id;
+    lastInTab[M.id + '/' + g.tab.id] = g.id;
     Array.prototype.forEach.call(tabsEl.children, function (b) {
       b.setAttribute('aria-current', b.getAttribute('data-tab') === g.tab.id ? 'true' : 'false');
     });
@@ -951,58 +744,51 @@ thead th.s6 { color: var(--pink-deep); }
     if (on) row.scrollLeft = on.offsetLeft - 16;
     fade();
 
-    var i = FLAT.indexOf(g), prev = FLAT[i - 1], next = FLAT[i + 1];
+    var i = M.flat.indexOf(g), prev = M.flat[i - 1], next = M.flat[i + 1];
     viewEl.innerHTML = groupHTML(g).html +
       '<div class="pager">' +
       (prev ? '<button type="button" data-g="' + prev.id + '"><small>← 前へ' + (prev.tab !== g.tab ? '（' + esc(prev.tab.label) + '）' : '') + '</small><span>' + esc(prev.short) + '</span></button>' : '') +
       (next ? '<button type="button" data-g="' + next.id + '"><small>次へ' + (next.tab !== g.tab ? '（' + esc(next.tab.label) + '）' : '') + ' →</small><span>' + esc(next.short) + '</span></button>' : '') +
       '</div><p class="foot">画面写真は一撃（1geki）の解析ページから引用しています。各写真の「出典：一撃」から元のページを開けます。</p>';
-    remember(g.id);
-    try { history.replaceState(null, '', '#' + g.id); } catch (e) {}
+    store('shisa.view.' + M.id, g.id);
+    try { history.replaceState(null, '', '#' + M.id + '-' + g.id); } catch (e) {}
     if (fromUser) scrollToContent();
   }
 
   function search() {
     var q = norm(qEl.value);
     qClear.hidden = !qEl.value;
-    if (!q) { show(current ? current.id : FLAT[0].id, false); return; }
+    if (!q) { show(M.id, current ? current.id : null, false); return; }
     var keep = function (k) { return k.indexOf(q) !== -1; };
     var total = 0, html = '';
-    FLAT.forEach(function (g) { var r = groupHTML(g, keep); total += r.n; html += r.html; });
+    M.flat.forEach(function (g) { var r = groupHTML(g, keep); total += r.n; html += r.html; });
     Array.prototype.forEach.call(tabsEl.children, function (b) { b.setAttribute('aria-current', 'false'); });
     subEl.innerHTML = '<div class="search-head"><span>「' + esc(qEl.value.trim()) + '」の検索結果：' + total + '件</span><button type="button" class="chip" id="q-end">検索をやめる</button></div>';
-    viewEl.innerHTML = total ? html : '<div class="empty">見つかりませんでした。キャラ名を短くするか、別の言葉で試してください。</div>';
+    viewEl.innerHTML = total ? html : '<div class="empty">' + esc(M.short) + 'の中には見つかりませんでした。キャラ名を短くするか、別の言葉で試してください。</div>';
   }
   function clearSearch() { qEl.value = ''; search(); }
 
   qEl.addEventListener('input', search);
   qClear.addEventListener('click', function () { clearSearch(); qEl.focus(); });
+  selEl.addEventListener('change', function () {
+    if (qEl.value) { qEl.value = ''; qClear.hidden = true; }
+    var m = machineById(selEl.value);
+    show(m.id, recall('shisa.view.' + m.id), true);
+  });
 
   subEl.addEventListener('click', function (e) {
     if (e.target.closest('#q-end')) { clearSearch(); return; }
     var b = e.target.closest('[data-g]');
-    if (b) show(b.getAttribute('data-g'), true);
+    if (b) show(M.id, b.getAttribute('data-g'), true);
   });
   tabsEl.addEventListener('click', function (e) {
     var b = e.target.closest('.tab');
     if (!b) return;
     if (qEl.value) { qEl.value = ''; qClear.hidden = true; }
-    var t = TABS.filter(function (x) { return x.id === b.getAttribute('data-tab'); })[0];
-    show(lastInTab[t.id] || t.groups[0].id, true);
+    var t = M.tabs.filter(function (x) { return x.id === b.getAttribute('data-tab'); })[0];
+    show(M.id, lastInTab[M.id + '/' + t.id] || t.groups[0].id, true);
   });
 
-  // 台の情報・色の見かた
-  document.getElementById('p-info').innerHTML =
-    '<h2>この台について</h2><dl class="spec">' + INFO.spec.map(function (p) {
-      return '<div><dt>' + esc(p[0]) + '</dt><dd>' + esc(p[1]) + '</dd></div>';
-    }).join('') + '</dl>' +
-    '<div><h2>出典</h2><ul>' + INFO.sources.map(function (s) {
-      return '<li><a href="' + esc(s[1]) + '" target="_blank" rel="noopener">' + esc(s[0]) + '</a></li>';
-    }).join('') + '</ul></div>' +
-    (window.APP_MODE
-      ? '<p class="small">ホーム画面アプリ版です。一度開けば、電波が弱いホールの中でも見られます。新しい内容は、電波があるときに開き直すと入ります。</p>'
-      : '<div><h2>ホーム画面アプリ版</h2><p><a href="' + APP_URL + '" target="_blank" rel="noopener">' + APP_URL + '</a></p><p class="small">iPhoneはSafariで開いて「共有」→「ホーム画面に追加」。一度開けば電波がなくても見られます。</p></div>') +
-    '<p class="small">画面写真は一撃の解析ページから、出典リンクを付けて引用しています。ちょんぼりすた・なな徹はリンクのみです。示唆の中身と数値は各サイトの解析・実戦報告を要約したもので、新しい情報が出ると変わることがあります。</p>';
   [['b-info', 'p-info'], ['b-legend', 'p-legend']].forEach(function (p, i, arr) {
     document.getElementById(p[0]).addEventListener('click', function () {
       var panel = document.getElementById(p[1]);
@@ -1042,7 +828,7 @@ thead th.s6 { color: var(--pink-deep); }
       return;
     }
     var p = e.target.closest('.pager [data-g]');
-    if (p) show(p.getAttribute('data-g'), true);
+    if (p) show(M.id, p.getAttribute('data-g'), true);
   });
   lbPrev.addEventListener('click', function () { step(-1); });
   lbNext.addEventListener('click', function () { step(1); });
@@ -1063,8 +849,24 @@ thead th.s6 { color: var(--pink-deep); }
   });
   stage.addEventListener('click', function (e) { if (e.target === stage) lb.close(); });
 
-  var h = (location.hash || '').slice(1);
-  h = OLD[h] || h;
-  show(byId(h) ? h : (byId(recalled()) ? recalled() : FLAT[0].id), false);
+  // 開く場所：#機種-項目 → 前のURL（#end など、青ブタ）→ 前回見ていた所
+  function fromHash() {
+    var h = (location.hash || '').slice(1), dash = h.indexOf('-');
+    if (dash > 0 && machineById(h.slice(0, dash))) return [h.slice(0, dash), h.slice(dash + 1)];
+    var a = machineById('aobuta');
+    if (h && a && (groupById(a, h) || (a.old && a.old[h]))) return ['aobuta', (a.old && a.old[h]) || h];
+    return null;
+  }
+  window.addEventListener('hashchange', function () {
+    var t = fromHash();
+    if (t) { if (qEl.value) { qEl.value = ''; qClear.hidden = true; } show(t[0], t[1], true); }
+  });
+  var first = fromHash(), mid = first && first[0], gid = first && first[1];
+  if (!mid) {
+    mid = recall('shisa.machine') || 'aobuta';
+    if (!machineById(mid)) mid = MACHINES[0].id;
+    gid = recall('shisa.view.' + mid) || (mid === 'aobuta' ? recall('shisa.aobuta.view') : null);
+  }
+  show(mid, gid, false);
 })();
 </script>

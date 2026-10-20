@@ -1,7 +1,8 @@
 // node src/build-app.js が作るファイル。直接書き換えない
-const VERSION = 'a673b7b1d217';
+const VERSION = '9c3f2be4cb41';
 const CACHE = 'shisa-' + VERSION;
 const FONT_CACHE = 'shisa-fonts';
+const IMG_CACHE = 'shisa-img';
 const PRECACHE = [
   "./",
   "index.html",
@@ -10,55 +11,16 @@ const PRECACHE = [
   "icons/icon-192.png",
   "icons/icon-512.png",
   "icons/maskable-512.png",
-  "img/ekishou02.webp",
-  "img/ekishou05.webp",
-  "img/ekishou06.webp",
-  "img/ekishou07.webp",
-  "img/ekishou08.webp",
-  "img/ekishou09.webp",
-  "img/ekishou10.webp",
-  "img/ekishou103.webp",
-  "img/ekishou11.webp",
-  "img/ekishou12.webp",
-  "img/ekishou22.webp",
-  "img/ekishou26.webp",
-  "img/ekishou27.webp",
-  "img/ekishou28.webp",
-  "img/ekishou29.webp",
-  "img/ekishou30.webp",
-  "img/ekishou32.webp",
-  "img/ekishou41.webp",
-  "img/ekishou42.webp",
-  "img/ekishou43.webp",
-  "img/ekishou64.webp",
-  "img/ekishou67.webp",
-  "img/ekishou69.webp",
-  "img/ekishou70.webp",
-  "img/ekishou71.webp",
-  "img/ekishou72.webp",
-  "img/ekishou73.webp",
-  "img/ekishou74.webp",
-  "img/ekishou75.webp",
-  "img/ekishou76.webp",
-  "img/ekishou77.webp",
-  "img/ekishou78.webp",
-  "img/ekishou80.webp",
-  "img/ekishou81.webp",
-  "img/ekishou82.webp",
-  "img/ekishou83.webp",
-  "img/ekishou84.webp",
-  "img/ekishou85.webp",
-  "img/ekishou86.webp",
-  "img/ekishou87.webp",
-  "img/ekishou88.webp",
-  "img/ekishou89.webp",
-  "img/ekishou90.webp",
-  "img/ekishou91.webp",
-  "img/ekishou92.webp",
-  "img/ekishou93.webp",
-  "img/uchikata09.webp",
-  "img/uchikata10.webp",
-  "img/uchikata11.webp"
+  "machines/aobuta.js",
+  "machines/dims.js",
+  "machines/index2.js",
+  "machines/lycoreco.js",
+  "machines/otome5.js",
+  "machines/paripi.js",
+  "machines/sao2.js",
+  "machines/sunbreak.js",
+  "machines/valvrave.js",
+  "machines/valvrave2.js"
 ];
 
 self.addEventListener('install', (e) => {
@@ -68,7 +30,7 @@ self.addEventListener('install', (e) => {
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE && k !== FONT_CACHE).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE && k !== FONT_CACHE && k !== IMG_CACHE).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
@@ -109,11 +71,12 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
-  // 写真・アイコンなど：保存したもの優先
+  // 写真・アイコンなど：保存したもの優先。写真は版が変わっても消さない箱に入れる
+  const box = url.pathname.indexOf('/img/') !== -1 ? IMG_CACHE : CACHE;
   e.respondWith(caches.match(req).then((hit) => hit || fetch(req).then((res) => {
     if (res.ok) {
       const copy = res.clone();
-      caches.open(CACHE).then((c) => c.put(req, copy));
+      caches.open(box).then((c) => c.put(req, copy));
     }
     return res;
   })));
