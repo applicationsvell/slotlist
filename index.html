@@ -704,6 +704,9 @@ body.judging main.gut { padding-bottom: calc(210px + env(safe-area-inset-bottom,
 .jmodes { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; background: var(--bg); border: 2px solid var(--edge); border-radius: 999px; padding: 3px; }
 .jmd { cursor: pointer; border: 0; border-radius: 999px; background: transparent; color: var(--muted); font-size: 12.5px; font-weight: 900; padding: 7px 4px; min-width: 0; }
 .jmd[aria-checked="true"] { background: var(--mint); color: var(--on-color); }
+.jprior { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; align-items: center; font-size: 12.5px; font-weight: 900; }
+.jprior .jmodes { grid-template-columns: repeat(3, minmax(0, 1fr)); background: var(--surface); }
+.jprior .jmd[aria-checked="true"] { background: var(--grape); }
 .jbtn.sm { font-size: 14px; }
 .jrate { display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 700; color: var(--muted); flex-wrap: wrap; }
 .jrate label { flex: 1; min-width: 0; }
@@ -1364,19 +1367,34 @@ body.judging main.gut { padding-bottom: calc(210px + env(safe-area-inset-bottom,
     return '<button type="button" class="cnt' + (k === 'memo' ? ' memo' : '') + '" data-hk="' + esc(key) + '" aria-label="' + esc(it.see + 'を1回数える') + '">＋1' + (k === 'memo' ? ' メモ' : '') + '<b>' + n + '</b></button>';
   }
 
-  // 設定ごとの確からしさ（最初は全部同じとして、数えたものを掛け合わせる）
+  // 最初の見込み：flat はどの設定も同じ、low は低い設定ほど多い（1つ上がるごとに0.6倍）、high は高い設定ほど多い（1つ下がるごとに0.75倍）
+  var PRIORS = [['flat', '均等'], ['low', 'ふだん'], ['high', '高設定狙い']];
+  var prior = recall('shisa.prior');
+  if (!PRIORS.some(function (x) { return x[0] === prior; })) prior = 'flat';
+  function priorW(S) {
+    var n = S.length;
+    return S.map(function (s, i) { return prior === 'low' ? Math.pow(0.6, i) : prior === 'high' ? Math.pow(0.75, n - 1 - i) : 1; });
+  }
+  // 設定ごとの確からしさ（最初の見込みに、数えたものが各設定でどれくらい起きやすいかを掛け合わせる）
+  // wt：ほかの要素と重なる分があるものは、重みを下げて掛け合わせる
   function judgeCalc() {
-    var Jd = M.judge, S = Jd.settings, L = S.map(function () { return 0; });
+    var Jd = M.judge, S = Jd.settings, L = priorW(S).map(function (w) { return Math.log(w); });
     var used = 0, warn = [], hard = S.map(function () { return false; });
     var G0 = Math.max(0, Math.floor(J.games));
     Jd.rates.forEach(function (r) {
-      var k = J.r[r.id] || 0, G = gFor(r);
+      var k = J.r[r.id] || 0, G = gFor(r), wt = r.wt || 1;
       if (!rateOn(r.id)) return;
       if (!k && !G) return;
+      // 同じ当たりを別の数え方で数えているときは、二重にならないように外す
+      var dup = (r.skipIf || []).filter(function (id) { return (J.t[id] || [])[0] > 0; });
+      if (dup.length) {
+        warn.push('「' + r.label + '」は「' + dup.map(function (id) { return (Jd.pairs.filter(function (x) { return x.id === id; })[0] || {}).label || id; }).join('」「') + '」と同じ当たりを数えることになるため、計算から外しています。');
+        return;
+      }
       if (!G) { warn.push(gForName(r) + 'を入れると「' + r.label + '」が計算に入ります。'); return; }
       var n = Math.max(G, k);
       if (k > G) warn.push('「' + r.label + '」が' + gForName(r) + 'より多くなっています。');
-      S.forEach(function (s, i) { var p = 1 / r.p[i]; L[i] += k * Math.log(p) + (n - k) * Math.log(1 - p); });
+      S.forEach(function (s, i) { var p = 1 / r.p[i]; L[i] += wt * (k * Math.log(p) + (n - k) * Math.log(1 - p)); });
       used++;
     });
     // 引いた回数と当たった回数（当たり方が複数あるときは、それぞれ別に掛け合わせる）
@@ -1388,7 +1406,7 @@ body.judging main.gut { padding-bottom: calc(210px + env(safe-area-inset-bottom,
         if (!a) return;
         S.forEach(function (s, i) {
           var q = o.p[i] / 100;
-          L[i] += (h ? h * Math.log(q) : 0) + (a > h ? (a - h) * Math.log(1 - q) : 0);
+          L[i] += (r.wt || 1) * ((h ? h * Math.log(q) : 0) + (a > h ? (a - h) * Math.log(1 - q) : 0));
         });
       });
       if (a) used++;
@@ -1530,7 +1548,10 @@ body.judging main.gut { padding-bottom: calc(210px + env(safe-area-inset-bottom,
 
   function jCountHTML(G) {
     var Jd = M.judge;
-    var h = '<section class="jcard c-sun"><h3>' + esc(gName()) + '</h3><div class="jgames"><label for="j-games">' + esc(gHelp()) + '</label>' +
+    var h = '<div class="jprior"><span>最初の見込み</span><div class="jmodes" role="radiogroup" aria-label="最初の見込み">' + PRIORS.map(function (x) {
+        return '<button type="button" class="jmd" role="radio" data-act="prior" data-id="' + x[0] + '" aria-checked="' + (prior === x[0]) + '">' + x[1] + '</button>';
+      }).join('') + '</div></div>' +
+      '<section class="jcard c-sun"><h3>' + esc(gName()) + '</h3><div class="jgames"><label for="j-games">' + esc(gHelp()) + '</label>' +
       '<div class="jledin"><input id="j-games" type="number" inputmode="numeric" min="0" step="1" value="' + (G || '') + '" placeholder="0"><span>G</span></div>' +
       '<div class="jplus">' + [1, 10, 100, 500].map(function (v) {
         return '<button type="button" class="jbtn" data-act="g" data-d="' + v + '">＋' + v + '</button>';
@@ -1548,10 +1569,23 @@ body.judging main.gut { padding-bottom: calc(210px + env(safe-area-inset-bottom,
     var normal = function (r) { return perOf(r) === 'normal'; };
     var main = Jd.rates.filter(function (r) { return !r.sec && normal(r); });
     if (main.length) h += '<section class="jcard"><h3>' + esc(gName()) + 'に対する回数</h3>' + refNote + main.map(rateRow).join('') + '</section>';
+    var pairRow = function (r) {
+      var t = J.t[r.id] || [], a = t[0] || 0, outs = pOuts(r), many = outs.length > 1;
+      return '<div class="jitem"><div class="jhead"><span class="nm">' + esc(r.label) + '</span>' +
+        (a ? '<span class="ob">いま ' + outs.map(function (o, j) { return (many ? esc(o.b) + ' ' : '') + ((t[j + 1] || 0) / a * 100).toFixed(1) + '%'; }).join('・') + '</span>' : '') + '</div>' +
+        (r.where ? '<p class="jwhere">' + esc(r.where) + '</p>' : '') +
+        '<div class="jctr pair">' + counterHTML('t', r.id, 0, a, r.a) + outs.map(function (o, j) { return counterHTML('t', r.id, j + 1, t[j + 1] || 0, o.b); }).join('') + '</div>' +
+        outs.map(function (o, j) {
+          var obs = a ? (t[j + 1] || 0) / a * 100 : null;
+          var near = obs != null ? nearest(o.p, function (p) { return Math.abs(p - obs); }) : [];
+          return (many ? '<div class="jrefcap">' + esc(o.b) + '</div>' : '') + refsHTML(o.p, near, '%');
+        }).join('') + '</div>';
+    };
     Object.keys(Jd.secs || {}).forEach(function (k) {
       var sec = Jd.secs[k];
       h += '<section class="jcard c-grape"><h3>' + esc(sec.title) + '</h3>' + (sec.note ? '<p class="small">' + esc(sec.note) + '</p>' : '') +
-        Jd.rates.filter(function (r) { return r.sec === k; }).map(rateRow).join('') + '</section>';
+        Jd.rates.filter(function (r) { return r.sec === k; }).map(rateRow).join('') +
+        (Jd.pairs || []).filter(function (r) { return r.sec === k; }).map(pairRow).join('') + '</section>';
     });
     // AT中に数えるもの（AT中のゲーム数で割るもの・通常時と合わせて割るもの・AT中の目安）
     var atRates = Jd.rates.filter(function (r) { return !normal(r); });
@@ -1565,19 +1599,9 @@ body.judging main.gut { padding-bottom: calc(210px + env(safe-area-inset-bottom,
     }
     if (nMarks.length) h += '<section class="jcard c-sun"><h3>設定1と比べる目安（計算には入れない）</h3>' +
       '<p class="small">設定1の値しかわかっていないものです。いまの数値が設定1より良いかどうかだけを出します。</p>' + nMarks.map(markRow).join('') + '</section>';
-    if ((Jd.pairs || []).length) h += '<section class="jcard c-mint"><h3>引いた回数と、そこから当たった回数</h3>' +
-      '<p class="small">数字は設定ごとの当たる割合。いまの割合にいちばん近い設定がピンクになります。</p>' + Jd.pairs.map(function (r) {
-        var t = J.t[r.id] || [], a = t[0] || 0, outs = pOuts(r), many = outs.length > 1;
-        return '<div class="jitem"><div class="jhead"><span class="nm">' + esc(r.label) + '</span>' +
-          (a ? '<span class="ob">いま ' + outs.map(function (o, j) { return (many ? esc(o.b) + ' ' : '') + ((t[j + 1] || 0) / a * 100).toFixed(1) + '%'; }).join('・') + '</span>' : '') + '</div>' +
-          (r.where ? '<p class="jwhere">' + esc(r.where) + '</p>' : '') +
-          '<div class="jctr pair">' + counterHTML('t', r.id, 0, a, r.a) + outs.map(function (o, j) { return counterHTML('t', r.id, j + 1, t[j + 1] || 0, o.b); }).join('') + '</div>' +
-          outs.map(function (o, j) {
-            var obs = a ? (t[j + 1] || 0) / a * 100 : null;
-            var near = obs != null ? nearest(o.p, function (p) { return Math.abs(p - obs); }) : [];
-            return (many ? '<div class="jrefcap">' + esc(o.b) + '</div>' : '') + refsHTML(o.p, near, '%');
-          }).join('') + '</div>';
-      }).join('') + '</section>';
+    var mainPairs = (Jd.pairs || []).filter(function (r) { return !r.sec; });
+    if (mainPairs.length) h += '<section class="jcard c-mint"><h3>引いた回数と、そこから当たった回数</h3>' +
+      '<p class="small">数字は設定ごとの当たる割合。いまの割合にいちばん近い設定がピンクになります。</p>' + mainPairs.map(pairRow).join('') + '</section>';
     return h;
   }
 
@@ -1677,7 +1701,9 @@ body.judging main.gut { padding-bottom: calc(210px + env(safe-area-inset-bottom,
   function jHowHTML() {
     var Jd = M.judge, S = Jd.settings;
     return '<section class="jcard jhow c-grape"><h3>計算のしかた</h3>' +
-      '<p>最初はどの設定も同じ見込みとして、数えたものが各設定でどれくらい起きやすいかを掛け合わせています。</p>' +
+      '<p>「最初の見込み」に、数えたものが各設定でどれくらい起きやすいかを掛け合わせています。最初の見込みは「均等」がどの設定も同じ、「ふだん」が低い設定ほど多い（1つ上がるごとに0.6倍）、「高設定狙い」がイベントなどで高い設定ほど多い（1つ下がるごとに0.75倍）です。いまは「' +
+        PRIORS.filter(function (x) { return x[0] === prior; })[0][1] + '」です。</p>' +
+      '<p>同じ当たりを2通りに数えているもの（アオハルチャンスの回数と「チェリー → アオハル」など）は、二重にならないよう片方を外します。ほかの要素と一部重なるものは、重みを下げて計算します。</p>' +
       '<p>' + esc(gName()) + 'に対する回数は「計算に入れる」がONのものだけ使います（＋を押すと自動でON）。数えていない項目が0回として扱われないようにするためです。</p>' +
       '<p>「濃厚」の示唆はその設定を候補から外します。出現率がわかっている示唆はその値で、わからない奇数・偶数や高設定示唆（弱・強）は仮の重みで少しだけ寄せています。「推測」の示唆は外さずに弱めに数えます。</p>' +
       (Jd.rates.some(function (r) { return perOf(r) !== 'normal'; }) ? '<p>AT中にも同じ確率で出るものは、' + esc(gName()) + 'とAT中のゲーム数を足して割ります。AT中の分も数えると、早く判別できます。</p>' : '') +
@@ -1796,6 +1822,7 @@ body.judging main.gut { padding-bottom: calc(210px + env(safe-area-inset-bottom,
     if (act === 'guide-ok') { guideShow = false; store('shisa.judgeGuide', '1'); jRefresh(true); return; }
     if (act === 'guide') { guideShow = true; jRefresh(true); jBody.scrollTop = 0; return; }
     if (act === 'tab') { jTab = id; jRefresh(true); jBody.scrollTop = 0; return; }
+    if (act === 'prior') { prior = id; store('shisa.prior', id); jRefresh(true); return; }
     if (act === 'mode') { setJudge(!judgeOn, true); rerender(); jRefresh(true); return; }
     if (act === 'goto') {
       var t = M.tabs.filter(function (x) { return x.id === 'setting'; })[0] || M.tabs[0];
