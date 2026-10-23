@@ -1,5 +1,5 @@
 // node src/build-app.js が作るファイル。直接書き換えない
-const VERSION = 'fa7294028bd4';
+const VERSION = '0f827504a64f';
 const CACHE = 'shisa-' + VERSION;
 const FONT_CACHE = 'shisa-fonts';
 const IMG_CACHE = 'shisa-img';
@@ -13,6 +13,7 @@ const PRECACHE = [
   "icons/maskable-512.png",
   "machines/aobuta.js",
   "machines/dims.js",
+  "machines/godkiseki.js",
   "machines/index2.js",
   "machines/lycoreco.js",
   "machines/otome5.js",
